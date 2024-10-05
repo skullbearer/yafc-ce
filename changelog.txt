@@ -15,6 +15,13 @@
 //     Internal changes:
 //         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
+Version : TBD
+Date: 
+    Features:
+        - Improved precision
+    Internal changes:
+        - Convert all float values to double
+----------------------------------------------------------------------------------------------------------------------
 Version: 0.10.0
 Date:
     Features:

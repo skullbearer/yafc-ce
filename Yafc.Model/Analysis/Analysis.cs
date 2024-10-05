@@ -52,15 +52,15 @@ public static class AnalysisExtensions {
 
     public static bool IsAutomatableWithCurrentMilestones(this FactorioObject obj) => AutomationAnalysis.Instance.automatable[obj] == AutomationStatus.AutomatableNow;
 
-    public static float Cost(this FactorioObject goods, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).cost[goods];
+    public static double Cost(this FactorioObject goods, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).cost[goods];
 
-    public static float ApproximateFlow(this FactorioObject recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).flow[recipe];
+    public static double ApproximateFlow(this FactorioObject recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).flow[recipe];
 
-    public static float ProductCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeProductCost[recipe];
+    public static double ProductCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeProductCost[recipe];
 
-    public static float RecipeWaste(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeWastePercentage[recipe];
+    public static double RecipeWaste(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeWastePercentage[recipe];
 
-    public static float RecipeBaseCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeCost[recipe];
+    public static double RecipeBaseCost(this Recipe recipe, bool atCurrentMilestones = false) => CostAnalysis.Get(atCurrentMilestones).recipeCost[recipe];
 
     /// <summary>
     /// Filters a list of <see cref="FactorioObject"/>s down to those that were not excluded by the specified <see cref="Analysis"/>
