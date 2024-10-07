@@ -8,12 +8,12 @@ using Yafc.UI;
 namespace Yafc.Model;
 
 public struct ModuleEffects {
-    public float speed;
-    public float productivity;
-    public float consumption;
-    public readonly float speedMod => MathF.Max(1f + speed, 0.2f);
-    public readonly float energyUsageMod => MathF.Max(1f + consumption, 0.2f);
-    public void AddModules(ModuleSpecification module, float count, AllowedEffects allowedEffects) {
+    public double speed;
+    public double productivity;
+    public double consumption;
+    public readonly double speedMod => Math.Max(1d + speed, 0.2f);
+    public readonly double energyUsageMod => Math.Max(1d + consumption, 0.2f);
+    public void AddModules(ModuleSpecification module, double count, AllowedEffects allowedEffects) {
         if (allowedEffects.HasFlags(AllowedEffects.Speed)) {
             speed += module.speed * count;
         }
@@ -27,7 +27,7 @@ public struct ModuleEffects {
         }
     }
 
-    public void AddModules(ModuleSpecification module, float count) {
+    public void AddModules(ModuleSpecification module, double count) {
         speed += module.speed * count;
 
         if (module.productivity > 0f) {
@@ -239,7 +239,7 @@ public interface IGroupedElement<TGroup> {
 public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<ProductionTable> {
     private EntityCrafter? _entity;
     private Goods? _fuel;
-    private float _fixedBuildings;
+    private double _fixedBuildings;
     private Goods? _fixedProduct;
     private ModuleTemplate? _modules;
 
@@ -291,7 +291,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
                         newAmount += fuelUsagePerSecond;
                     }
 
-                    fixedBuildings *= (float)(oldAmount / newAmount);
+                    fixedBuildings *= (double)(oldAmount / newAmount);
                 }
             }
             else if (fixedFuel) {
@@ -314,7 +314,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
     /// Read <see cref="fixedFuel"/>, <see cref="fixedIngredient"/>, and <see cref="fixedProduct"/> to determine which value was fixed in the UI.
     /// This property is set/modified so the solver gets the correct answer without testing the values of those properties.
     /// </summary>
-    public float fixedBuildings {
+    public double fixedBuildings {
         get => _fixedBuildings;
         set {
             _fixedBuildings = value;
@@ -408,7 +408,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
             IEnumerable<RecipeRowIngredient> @internal() {
                 for (int i = 0; i < recipe.ingredients.Length; i++) {
                     Ingredient ingredient = recipe.ingredients[i];
-                    yield return (links.ingredientGoods[i], ingredient.amount * (float)recipesPerSecond, links.ingredients[i], ingredient.variants);
+                    yield return (links.ingredientGoods[i], ingredient.amount * (double)recipesPerSecond, links.ingredients[i], ingredient.variants);
                 }
             }
         }
@@ -421,7 +421,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
             foreach (Product product in recipe.products) {
                 if (hierarchyEnabled) {
-                    float amount = product.GetAmountForRow(this);
+                    double amount = product.GetAmountForRow(this);
 
                     if (product.goods == spentFuel) {
                         amount += fuelUsagePerSecond;
@@ -444,7 +444,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
     // Computed variables
     internal RecipeParameters parameters { get; set; } = RecipeParameters.Empty;
     public double recipesPerSecond { get; internal set; }
-    internal float fuelUsagePerSecond => (float)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
+    internal double fuelUsagePerSecond => (double)(parameters.fuelUsagePerSecondPerRecipe * recipesPerSecond);
     public UsedModule usedModules => parameters.modules;
     public WarningFlags warningFlags => parameters.warningFlags;
     public bool FindLink(Goods goods, [MaybeNullWhen(false)] out ProductionLink link) => linkRoot.FindLink(goods, out link);
@@ -466,7 +466,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
 
     [MemberNotNullWhen(true, nameof(subgroup))]
     public bool isOverviewMode => subgroup != null && !subgroup.expanded;
-    public float buildingCount => (float)recipesPerSecond * parameters.recipeTime;
+    public double buildingCount => (double)recipesPerSecond * parameters.recipeTime;
     public bool visible { get; internal set; } = true;
 
     public RecipeRow(ProductionTable owner, RecipeOrTechnology recipe) : base(owner) {
@@ -515,7 +515,7 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
         return null;
     }
 
-    internal void GetModulesInfo((float recipeTime, float fuelUsagePerSecondPerBuilding) recipeParams, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+    internal void GetModulesInfo((double recipeTime, double fuelUsagePerSecondPerBuilding) recipeParams, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
         ModuleFillerParameters? filler = null;
         var useModules = modules;
         if (useModules == null || useModules.beacon == null) {
@@ -585,8 +585,8 @@ public class RecipeRow : ModelObject<ProductionTable>, IGroupedElement<Productio
                     row.fixedBuildings = 0; // We couldn't find the Product corresponding to fixedProduct. Just clear the fixed amount.
                 }
                 else {
-                    float oldAmount = product.GetAmountPerRecipe(oldParameters.productivity) / oldParameters.recipeTime;
-                    float newAmount = product.GetAmountPerRecipe(row.parameters.productivity) / row.parameters.recipeTime;
+                    double oldAmount = product.GetAmountPerRecipe(oldParameters.productivity) / oldParameters.recipeTime;
+                    double newAmount = product.GetAmountPerRecipe(row.parameters.productivity) / row.parameters.recipeTime;
                     row.fixedBuildings *= oldAmount / newAmount; // step 3, for fixed production amount
                 }
             }
@@ -641,7 +641,7 @@ public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<Pr
     }
 
     public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Linked product does not exist");
-    public float amount { get; set; }
+    public double amount { get; set; }
     public LinkAlgorithm algorithm { get; set; }
 
     // computed variables
@@ -649,14 +649,14 @@ public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<Pr
     /// <summary>
     /// Probably the total production of the goods in the link. TODO: Needs to be investigated if it is indeed so.
     /// </summary>
-    public float linkFlow { get; internal set; }
-    public float notMatchedFlow { get; internal set; }
+    public double linkFlow { get; internal set; }
+    public double notMatchedFlow { get; internal set; }
     /// <summary>
     /// List of recipes belonging to this production link
     /// </summary>
     [SkipSerialization] public HashSet<RecipeRow> capturedRecipes { get; } = [];
     internal int solverIndex;
-    public float dualValue { get; internal set; }
+    public double dualValue { get; internal set; }
 
     public IEnumerable<string> LinkWarnings {
         get {
@@ -688,14 +688,14 @@ public class ProductionLink(ProductionTable group, Goods goods) : ModelObject<Pr
     }
 }
 
-public record RecipeRowIngredient(Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) {
-    public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants)(RecipeRowIngredient value)
+public record RecipeRowIngredient(Goods? Goods, double Amount, ProductionLink? Link, Goods[]? Variants) {
+    public static implicit operator (Goods? Goods, double Amount, ProductionLink? Link, Goods[]? Variants)(RecipeRowIngredient value)
         => (value.Goods, value.Amount, value.Link, value.Variants);
-    public static implicit operator RecipeRowIngredient((Goods? Goods, float Amount, ProductionLink? Link, Goods[]? Variants) value)
+    public static implicit operator RecipeRowIngredient((Goods? Goods, double Amount, ProductionLink? Link, Goods[]? Variants) value)
         => new(value.Goods, value.Amount, value.Link, value.Variants);
 }
 
-public record RecipeRowProduct(Goods? Goods, float Amount, ProductionLink? Link) {
-    public static implicit operator (Goods? Goods, float Amount, ProductionLink? Link)(RecipeRowProduct value) => (value.Goods, value.Amount, value.Link);
-    public static implicit operator RecipeRowProduct((Goods? Goods, float Amount, ProductionLink? Link) value) => new(value.Goods, value.Amount, value.Link);
+public record RecipeRowProduct(Goods? Goods, double Amount, ProductionLink? Link) {
+    public static implicit operator (Goods? Goods, double Amount, ProductionLink? Link)(RecipeRowProduct value) => (value.Goods, value.Amount, value.Link);
+    public static implicit operator RecipeRowProduct((Goods? Goods, double Amount, ProductionLink? Link) value) => new(value.Goods, value.Amount, value.Link);
 }

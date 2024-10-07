@@ -33,7 +33,7 @@ public record BeaconConfiguration(EntityBeacon? beacon, int beaconCount, Module?
 [Serializable]
 public class ModuleFillerParameters : ModelObject<ModelObject> {
     private bool _fillMiners;
-    private float _autoFillPayback;
+    private double _autoFillPayback;
     private Module? _fillerModule;
     private EntityBeacon? _beacon;
     private Module? _beaconModule;
@@ -45,7 +45,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         get => _fillMiners;
         set => ChangeModuleFillerParameters(ref _fillMiners, value);
     }
-    public float autoFillPayback {
+    public double autoFillPayback {
         get => _autoFillPayback;
         set => ChangeModuleFillerParameters(ref _autoFillPayback, value);
     }
@@ -122,7 +122,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         }
     }
 
-    private void AutoFillModules((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row,
+    private void AutoFillModules((double recipeTime, double fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row,
         EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
 
         RecipeOrTechnology recipe = row.recipe;
@@ -191,7 +191,7 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
         }
     }
 
-    internal void GetModulesInfo((float recipeTime, float fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
+    internal void GetModulesInfo((double recipeTime, double fuelUsagePerSecondPerBuilding) partialParams, RecipeRow row, EntityCrafter entity, ref ModuleEffects effects, ref UsedModule used) {
         AutoFillBeacons(row.recipe, entity, ref effects, ref used);
         AutoFillModules(partialParams, row, entity, ref effects, ref used);
     }

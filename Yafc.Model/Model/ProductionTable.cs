@@ -451,7 +451,7 @@ match:
             foreach (var link in deadlocks) {
                 // Adding negative slack to possible deadlocks (loops)
                 var constraint = constraints[link.solverIndex];
-                double cost = MathF.Abs(link.goods.Cost());
+                double cost = Math.Abs(link.goods.Cost());
                 var negativeSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
                 constraint.SetCoefficient(negativeSlack, cost);
                 objective.SetCoefficient(negativeSlack, 1f);
@@ -460,7 +460,7 @@ match:
 
             foreach (var link in splits) {
                 // Adding positive slack to splits
-                double cost = MathF.Abs(link.goods.Cost());
+                double cost = Math.Abs(link.goods.Cost());
                 var constraint = constraints[link.solverIndex];
                 var positiveSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                 constraint.SetCoefficient(positiveSlack, -cost);

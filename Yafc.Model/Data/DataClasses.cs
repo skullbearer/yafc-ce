@@ -11,7 +11,7 @@ namespace Yafc.Model;
 public interface IFactorioObjectWrapper {
     string text { get; }
     FactorioObject target { get; }
-    float amount { get; }
+    double amount { get; }
 }
 
 internal enum FactorioObjectSortOrder {
@@ -39,7 +39,7 @@ public abstract class FactorioObject : IFactorioObjectWrapper, IComparable<Facto
     public FactorioObjectSpecialType specialType { get; internal set; }
     public abstract string type { get; }
     FactorioObject IFactorioObjectWrapper.target => this;
-    float IFactorioObjectWrapper.amount => 1f;
+    double IFactorioObjectWrapper.amount => 1f;
 
     string IFactorioObjectWrapper.text => locName;
 
@@ -92,7 +92,7 @@ public abstract class RecipeOrTechnology : FactorioObject {
     public Module[] modules { get; internal set; } = [];
     public Entity? sourceEntity { get; internal set; }
     public Goods? mainProduct { get; internal set; }
-    public float time { get; internal set; }
+    public double time { get; internal set; }
     public bool enabled { get; internal set; }
     public bool hidden { get; internal set; }
     public RecipeFlags flags { get; internal set; }
@@ -190,11 +190,11 @@ public class Mechanics : Recipe {
 }
 
 public class Ingredient : IFactorioObjectWrapper {
-    public readonly float amount;
+    public readonly double amount;
     public Goods goods { get; internal set; }
     public Goods[]? variants { get; internal set; }
     public TemperatureRange temperature { get; internal set; } = TemperatureRange.Any;
-    public Ingredient(Goods goods, float amount) {
+    public Ingredient(Goods goods, double amount) {
         this.goods = goods;
         this.amount = amount;
         if (goods is Fluid fluid) {
@@ -219,7 +219,7 @@ public class Ingredient : IFactorioObjectWrapper {
 
     FactorioObject IFactorioObjectWrapper.target => goods;
 
-    float IFactorioObjectWrapper.amount => amount;
+    double IFactorioObjectWrapper.amount => amount;
 
     public bool ContainsVariant(Goods product) {
         if (goods == product) {
@@ -236,15 +236,15 @@ public class Ingredient : IFactorioObjectWrapper {
 
 public class Product : IFactorioObjectWrapper {
     public readonly Goods goods;
-    internal readonly float amountMin;
-    internal readonly float amountMax;
-    internal readonly float probability;
-    public readonly float amount; // This is average amount including probability and range
-    internal float productivityAmount { get; private set; }
+    internal readonly double amountMin;
+    internal readonly double amountMax;
+    internal readonly double probability;
+    public readonly double amount; // This is average amount including probability and range
+    internal double productivityAmount { get; private set; }
 
-    public void SetCatalyst(float catalyst) {
-        float catalyticMin = amountMin - catalyst;
-        float catalyticMax = amountMax - catalyst;
+    public void SetCatalyst(double catalyst) {
+        double catalyticMin = amountMin - catalyst;
+        double catalyticMax = amountMax - catalyst;
 
         if (catalyticMax <= 0) {
             productivityAmount = 0f;
@@ -258,16 +258,16 @@ public class Product : IFactorioObjectWrapper {
         }
     }
 
-    internal float GetAmountForRow(RecipeRow row) => GetAmountPerRecipe(row.parameters.productivity) * (float)row.recipesPerSecond;
-    internal float GetAmountPerRecipe(float productivityBonus) => amount + (productivityBonus * productivityAmount);
+    internal double GetAmountForRow(RecipeRow row) => GetAmountPerRecipe(row.parameters.productivity) * (double)row.recipesPerSecond;
+    internal double GetAmountPerRecipe(double productivityBonus) => amount + (productivityBonus * productivityAmount);
 
-    public Product(Goods goods, float amount) {
+    public Product(Goods goods, double amount) {
         this.goods = goods;
         amountMin = amountMax = this.amount = productivityAmount = amount;
         probability = 1f;
     }
 
-    public Product(Goods goods, float min, float max, float probability) {
+    public Product(Goods goods, double min, double max, double probability) {
         this.goods = goods;
         amountMin = min;
         amountMax = max;
@@ -297,12 +297,12 @@ public class Product : IFactorioObjectWrapper {
             return text;
         }
     }
-    float IFactorioObjectWrapper.amount => amount;
+    double IFactorioObjectWrapper.amount => amount;
 }
 
 // Abstract base for anything that can be produced or consumed by recipes (etc)
 public abstract class Goods : FactorioObject {
-    public float fuelValue { get; internal set; }
+    public double fuelValue { get; internal set; }
     public abstract bool isPower { get; }
     public Fluid? fluid => this as Fluid;
     public Recipe[] production { get; internal set; } = [];
@@ -341,10 +341,10 @@ public class Module : Item {
 public class Fluid : Goods {
     public override string type => "Fluid";
     public string originalName { get; internal set; } = null!; // name without temperature, null-forgiving: Initialized by DeserializeFluid.
-    public float heatCapacity { get; internal set; } = 1e-3f;
+    public double heatCapacity { get; internal set; } = 1e-3f;
     public TemperatureRange temperatureRange { get; internal set; }
     public int temperature { get; internal set; }
-    public float heatValue { get; internal set; }
+    public double heatValue { get; internal set; }
     public List<Fluid>? variants { get; internal set; }
     public override bool isPower => false;
     public override UnitOfMeasure flowUnitOfMeasure => UnitOfMeasure.FluidPerSecond;
@@ -391,8 +391,8 @@ public enum AllowedEffects {
 public class Entity : FactorioObject {
     public Product[] loot { get; internal set; } = [];
     public bool mapGenerated { get; internal set; }
-    public float mapGenDensity { get; internal set; }
-    public float power { get; internal set; }
+    public double mapGenDensity { get; internal set; }
+    public double power { get; internal set; }
     public EntityEnergy energy { get; internal set; } = null!; // TODO: Prove that this is always properly initialized. (Do we need an EntityWithEnergy type?)
     public Item[] itemsToPlace { get; internal set; } = null!; // null-forgiving: This is initialized in CalculateMaps.
     public int size { get; internal set; }
@@ -457,8 +457,8 @@ public class EntityCrafter : EntityWithModules {
     public int fluidInputs { get; internal set; } // fluid inputs for recipe, not including power
     public Goods[]? inputs { get; internal set; }
     public RecipeOrTechnology[] recipes { get; internal set; } = null!; // null-forgiving: Set in the first step of CalculateMaps
-    private float _craftingSpeed = 1;
-    public float craftingSpeed {
+    private double _craftingSpeed = 1;
+    public double craftingSpeed {
         // The speed of a lab is baseSpeed * (1 + researchSpeedBonus) * Math.Min(0.2, 1 + moduleAndBeaconSpeedBonus)
         get => _craftingSpeed * (1 + (factorioType == "lab" ? Project.current.settings.researchSpeedBonus : 0));
         internal set => _craftingSpeed = value;
@@ -468,23 +468,23 @@ public class EntityCrafter : EntityWithModules {
 
 public class EntityInserter : Entity {
     public bool isStackInserter { get; internal set; }
-    public float inserterSwingTime { get; internal set; }
+    public double inserterSwingTime { get; internal set; }
 }
 
 public class EntityAccumulator : Entity {
-    public float accumulatorCapacity { get; internal set; }
+    public double accumulatorCapacity { get; internal set; }
 }
 
 public class EntityBelt : Entity {
-    public float beltItemsPerSecond { get; internal set; }
+    public double beltItemsPerSecond { get; internal set; }
 }
 
 public class EntityReactor : EntityCrafter {
-    public float reactorNeighborBonus { get; internal set; }
+    public double reactorNeighborBonus { get; internal set; }
 }
 
 public class EntityBeacon : EntityWithModules {
-    public float beaconEfficiency { get; internal set; }
+    public double beaconEfficiency { get; internal set; }
 }
 
 public class EntityContainer : Entity {
@@ -494,7 +494,7 @@ public class EntityContainer : Entity {
 }
 
 public class Technology : RecipeOrTechnology { // Technology is very similar to recipe
-    public float count { get; internal set; } // TODO support formula count
+    public double count { get; internal set; } // TODO support formula count
     public Technology[] prerequisites { get; internal set; } = [];
     public Recipe[] unlockRecipes { get; internal set; } = [];
     internal override FactorioObjectSortOrder sortingOrder => FactorioObjectSortOrder.Technologies;
@@ -526,18 +526,18 @@ public class EntityEnergy {
     public EntityEnergyType type { get; internal set; }
     public TemperatureRange workingTemperature { get; internal set; }
     public TemperatureRange acceptedTemperature { get; internal set; } = TemperatureRange.Any;
-    public float emissions { get; internal set; }
-    public float drain { get; internal set; }
-    public float fuelConsumptionLimit { get; internal set; } = float.PositiveInfinity;
+    public double emissions { get; internal set; }
+    public double drain { get; internal set; }
+    public double fuelConsumptionLimit { get; internal set; } = double.PositiveInfinity;
     public Goods[] fuels { get; internal set; } = [];
-    public float effectivity { get; internal set; } = 1f;
+    public double effectivity { get; internal set; } = 1f;
 }
 
 public class ModuleSpecification {
-    public float consumption { get; internal set; }
-    public float speed { get; internal set; }
+    public double consumption { get; internal set; }
+    public double speed { get; internal set; }
     public float productivity { get; internal set; }
-    public float pollution { get; internal set; }
+    public double pollution { get; internal set; }
     public Recipe[]? limitation { get; internal set; }
     public Recipe[]? limitation_blacklist { get; internal set; }
 }

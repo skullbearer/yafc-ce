@@ -11,7 +11,7 @@ public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject
     public bool expanded { get; set; }
     public string? name { get; set; }
 
-    public void Solve(Dictionary<Goods, float> totalFlow, float multiplier) {
+    public void Solve(Dictionary<Goods, double> totalFlow, double multiplier) {
         foreach (var element in elements) {
             element.RefreshFlow();
         }
@@ -19,7 +19,7 @@ public class ProductionSummaryGroup(ModelObject owner) : ModelObject<ModelObject
         totalFlow.Clear();
         foreach (var row in elements) {
             foreach (var (item, amount) in row.flow) {
-                _ = totalFlow.TryGetValue(item, out float prev);
+                _ = totalFlow.TryGetValue(item, out double prev);
                 totalFlow[item] = prev + (amount * multiplier);
             }
         }
@@ -46,11 +46,11 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         base.AfterDeserialize();
     }
 
-    public float multiplier { get; set; } = 1;
+    public double multiplier { get; set; } = 1;
     public PageReference? page { get; set; }
     public ProductionSummaryGroup? subgroup { get; set; }
     public bool visible { get; private set; } = true;
-    [SkipSerialization] public Dictionary<Goods, float> flow { get; } = [];
+    [SkipSerialization] public Dictionary<Goods, double> flow { get; } = [];
     private bool needRefreshFlow = true;
 
     public Icon icon {
@@ -108,7 +108,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         return null;
     }
 
-    public float GetAmount(Goods goods) => flow.TryGetValue(goods, out float amount) ? amount : 0;
+    public double GetAmount(Goods goods) => flow.TryGetValue(goods, out double amount) ? amount : 0;
 
     public void RefreshFlow() {
         if (!needRefreshFlow) {
@@ -134,7 +134,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
 
             foreach (var link in subTable.links) {
                 if (link.amount != 0) {
-                    _ = flow.TryGetValue(link.goods, out float prevValue);
+                    _ = flow.TryGetValue(link.goods, out double prevValue);
                     flow[link.goods] = prevValue + (link.amount * multiplier);
                 }
             }
@@ -148,7 +148,7 @@ public class ProductionSummaryEntry(ProductionSummaryGroup owner) : ModelObject<
         subgroup?.UpdateFilter(goods, query);
     }
 
-    public void SetMultiplier(float newMultiplier) {
+    public void SetMultiplier(double newMultiplier) {
         _ = this.RecordUndo();
         needRefreshFlow = true;
         multiplier = newMultiplier;
@@ -159,13 +159,13 @@ public class ProductionSummaryColumn(ProductionSummary owner, Goods goods) : Mod
     public Goods goods { get; } = goods ?? throw new ArgumentNullException(nameof(goods), "Object does not exist");
 }
 
-public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, float amount)> {
+public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, double amount)> {
     public ProductionSummary(ModelObject page) : base(page) => group = new ProductionSummaryGroup(this);
     public ProductionSummaryGroup group { get; }
     public List<ProductionSummaryColumn> columns { get; } = [];
-    [SkipSerialization] public List<(Goods goods, float amount)> sortedFlow { get; } = [];
+    [SkipSerialization] public List<(Goods goods, double amount)> sortedFlow { get; } = [];
 
-    private readonly Dictionary<Goods, float> totalFlow = [];
+    private readonly Dictionary<Goods, double> totalFlow = [];
     [SkipSerialization] public HashSet<Goods> columnsExist { get; } = [];
 
     public override void InitNew() {
@@ -173,7 +173,7 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         base.InitNew();
     }
 
-    public float GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out float amount) ? amount : 0;
+    public double GetTotalFlow(Goods goods) => totalFlow.TryGetValue(goods, out double amount) ? amount : 0;
 
     public override async Task<string?> Solve(ProjectPage page) {
         List<Task> taskList = [];
@@ -204,9 +204,9 @@ public class ProductionSummary : ProjectPageContents, IComparer<(Goods goods, fl
         return null;
     }
 
-    public int Compare((Goods goods, float amount) x, (Goods goods, float amount) y) {
-        float amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
-        float amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
+    public int Compare((Goods goods, double amount) x, (Goods goods, double amount) y) {
+        double amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
+        double amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
 
         return amt1.CompareTo(amt2);
     }

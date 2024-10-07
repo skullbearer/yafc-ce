@@ -17,13 +17,13 @@ public class AutoPlannerGoal {
         get => _item;
         set => _item = value ?? throw new ArgumentNullException(nameof(value), "Auto planner goal no longer exist");
     }
-    public float amount { get; set; }
+    public double amount { get; set; }
 }
 
 public class AutoPlannerRecipe {
     public Recipe recipe;
     public int tier;
-    public float recipesPerSecond;
+    public double recipesPerSecond;
     public HashSet<Recipe> downstream = [];
     public HashSet<Recipe> upstream = [];
 }
@@ -249,7 +249,7 @@ nope:;
             tiers.Add(currentTier.Select(x => new AutoPlannerRecipe {
                 recipe = x,
                 tier = tiers.Count,
-                recipesPerSecond = (float)processedRecipes[x].SolutionValue(),
+                recipesPerSecond = (double)processedRecipes[x].SolutionValue(),
                 downstream = downstream.TryGetValue(x, out var res) ? res : null,
                 upstream = upstream.TryGetValue(x, out var res2) ? res2 : null
             }).ToArray());

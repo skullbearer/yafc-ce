@@ -33,25 +33,25 @@ public struct UsedModule {
     public int beaconCount;
 }
 
-internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBuilding, float productivity, WarningFlags warningFlags, ModuleEffects activeEffects, UsedModule modules) {
-    public const float MIN_RECIPE_TIME = 1f / 60;
-    public float recipeTime { get; } = recipeTime;
-    public float fuelUsagePerSecondPerBuilding { get; } = fuelUsagePerSecondPerBuilding;
-    public float productivity { get; } = productivity;
+internal class RecipeParameters(double recipeTime, double fuelUsagePerSecondPerBuilding, double productivity, WarningFlags warningFlags, ModuleEffects activeEffects, UsedModule modules) {
+    public const double MIN_RECIPE_TIME = 1f / 60;
+    public double recipeTime { get; } = recipeTime;
+    public double fuelUsagePerSecondPerBuilding { get; } = fuelUsagePerSecondPerBuilding;
+    public double productivity { get; } = productivity;
     public WarningFlags warningFlags { get; internal set; } = warningFlags;
     public ModuleEffects activeEffects { get; } = activeEffects;
     public UsedModule modules { get; } = modules;
 
     public static RecipeParameters Empty = new(0, 0, 0, 0, default, default);
 
-    public float fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
+    public double fuelUsagePerSecondPerRecipe => recipeTime * fuelUsagePerSecondPerBuilding;
 
     public static RecipeParameters CalculateParameters(RecipeRow row) {
         WarningFlags warningFlags = 0;
         EntityCrafter? entity = row.entity;
         RecipeOrTechnology recipe = row.recipe;
         Goods? fuel = row.fuel;
-        float recipeTime, fuelUsagePerSecondPerBuilding = 0, productivity;
+        double recipeTime, fuelUsagePerSecondPerBuilding = 0, productivity;
         ModuleEffects activeEffects = default;
         UsedModule modules = default;
 
@@ -64,8 +64,8 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
             recipeTime = recipe.time / entity.craftingSpeed;
             productivity = entity.productivity;
             var energy = entity.energy;
-            float energyUsage = entity.power;
-            float energyPerUnitOfFuel = 0f;
+            double energyUsage = entity.power;
+            double energyPerUnitOfFuel = 0f;
 
             // Special case for fuel
             if (energy != null && fuel != null) {
@@ -84,7 +84,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                             warningFlags |= WarningFlags.FuelTemperatureExceedsMaximum;
                         }
 
-                        float heatCap = fluid.heatCapacity;
+                        double heatCap = fluid.heatCapacity;
                         energyPerUnitOfFuel = (temperature - energy.workingTemperature.min) * heatCap;
                     }
                 }
@@ -123,7 +123,7 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                 var fluid = recipe.ingredients[0].goods.fluid;
 
                 if (fluid != null) {
-                    float inputTemperature = fluid.temperature;
+                    double inputTemperature = fluid.temperature;
 
                     foreach (Fluid variant in row.variants.OfType<Fluid>()) {
                         if (variant.originalName == fluid.originalName) {
@@ -132,8 +132,8 @@ internal class RecipeParameters(float recipeTime, float fuelUsagePerSecondPerBui
                     }
 
                     int outputTemp = recipe.products[0].goods.fluid!.temperature; // null-forgiving: UsesFluidTemperature tells us this is a special "Fluid boiling to ??°" recipe, with one output fluid.
-                    float deltaTemp = outputTemp - inputTemperature;
-                    float energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
+                    double deltaTemp = outputTemp - inputTemperature;
+                    double energyPerUnitOfFluid = deltaTemp * fluid.heatCapacity;
 
                     if (deltaTemp > 0 && fuel != null) {
                         recipeTime = 60 * energyPerUnitOfFluid / (fuelUsagePerSecondPerBuilding * fuel.fuelValue * energy.effectivity);

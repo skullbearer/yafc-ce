@@ -35,10 +35,10 @@ public class TechnologyScienceAnalysis : Analysis {
             sciencePackIndex[sciencePacks[i]] = i;
         }
 
-        Mapping<Technology, float>[] sciencePackCount = new Mapping<Technology, float>[sciencePacks.Length];
+        Mapping<Technology, double>[] sciencePackCount = new Mapping<Technology, double>[sciencePacks.Length];
 
         for (int i = 0; i < sciencePacks.Length; i++) {
-            sciencePackCount[i] = Database.technologies.CreateMapping<float>();
+            sciencePackCount[i] = Database.technologies.CreateMapping<double>();
         }
 
         var processing = Database.technologies.CreateMapping<bool>();
