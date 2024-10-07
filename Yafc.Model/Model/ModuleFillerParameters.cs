@@ -150,20 +150,20 @@ public class ModuleFillerParameters : ModelObject<ModelObject> {
             */
 
 
-            float productivityEconomy = recipe.Cost() / partialParams.recipeTime;
-            float speedEconomy = Math.Max(0.0001f, entity.Cost()) / autoFillPayback;
-            float effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0f;
+            double productivityEconomy = recipe.Cost() / partialParams.recipeTime;
+            double speedEconomy = Math.Max(0.0001d, entity.Cost()) / autoFillPayback;
+            double effectivityEconomy = partialParams.fuelUsagePerSecondPerBuilding * row.fuel?.Cost() ?? 0d;
 
-            if (effectivityEconomy < 0f) {
-                effectivityEconomy = 0f;
+            if (effectivityEconomy < 0d) {
+                effectivityEconomy = 0d;
             }
 
-            float bestEconomy = 0f;
+            double bestEconomy = 0d;
             Module? usedModule = null;
 
             foreach (var module in recipe.modules) {
                 if (module.IsAccessibleWithCurrentMilestones() && entity.CanAcceptModule(module.moduleSpecification)) {
-                    float economy = module.moduleSpecification.productivity * productivityEconomy
+                    double economy = module.moduleSpecification.productivity * productivityEconomy
                                   + module.moduleSpecification.speed * speedEconomy
                                   - module.moduleSpecification.consumption * effectivityEconomy;
 

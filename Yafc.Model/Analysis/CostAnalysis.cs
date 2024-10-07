@@ -49,7 +49,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         var variables = Database.goods.CreateMapping<Variable>();
         var constraints = Database.recipes.CreateMapping<Constraint>();
 
-        Dictionary<Goods, float> sciencePackUsage = [];
+        Dictionary<Goods, double> sciencePackUsage = [];
         if (!onlyCurrentMilestones && project.preferences.targetTechnology != null) {
             itemAmountPrefix = "Estimated amount for " + project.preferences.targetTechnology.locName + ": ";
 
@@ -68,7 +68,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                                 continue;
                             }
 
-                            _ = sciencePackUsage.TryGetValue(ingredient.goods, out float prev);
+                            _ = sciencePackUsage.TryGetValue(ingredient.goods, out double prev);
                             sciencePackUsage[ingredient.goods] = prev + (ingredient.amount * technology.count);
                         }
                     }
@@ -81,7 +81,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                 continue;
             }
 
-            float mapGeneratedAmount = 0f;
+            double mapGeneratedAmount = 0d;
 
             foreach (var src in goods.miscSources) {
                 if (src is Entity ent && ent.mapGenerated) {
@@ -94,18 +94,18 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
             }
 
             var variable = workspaceSolver.MakeVar(CostLowerLimit, CostLimitWhenGeneratesOnMap / mapGeneratedAmount, false, goods.name);
-            objective.SetCoefficient(variable, 1e-3); // adding small amount to each object cost, so even objects that aren't required for science will get cost calculated
+            objective.SetCoefficient(variable, 1e-3d); // adding small amount to each object cost, so even objects that aren't required for science will get cost calculated
             variables[goods] = variable;
         }
 
         foreach (var (item, count) in sciencePackUsage) {
-            objective.SetCoefficient(variables[item], count / 1000f);
+            objective.SetCoefficient(variables[item], count / 1000d);
         }
 
-        var export = Database.objects.CreateMapping<float>();
-        var recipeProductionCost = Database.recipesAndTechnologies.CreateMapping<float>();
-        recipeCost = Database.recipes.CreateMapping<float>();
-        flow = Database.objects.CreateMapping<float>();
+        var export = Database.objects.CreateMapping<double>();
+        var recipeProductionCost = Database.recipesAndTechnologies.CreateMapping<double>();
+        recipeCost = Database.recipes.CreateMapping<double>();
+        flow = Database.objects.CreateMapping<double>();
         var lastVariable = Database.goods.CreateMapping<Variable>();
 
         foreach (Recipe recipe in Database.recipes.all.ExceptExcluded(this)) {
@@ -119,13 +119,13 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
 
             // TODO incorporate fuel selection. Now just select fuel if it only uses 1 fuel
             Goods? singleUsedFuel = null;
-            float singleUsedFuelAmount = 0d;
-            float minEmissions = 100d;
+            double singleUsedFuelAmount = 0d;
+            double minEmissions = 100d;
             int minSize = 15;
-            float minPower = 1000d;
+            double minPower = 1000d;
 
             foreach (var crafter in recipe.crafters) {
-                minEmissions = MathF.Min(crafter.energy.emissions, minEmissions);
+                minEmissions = Math.Min(crafter.energy.emissions, minEmissions);
 
                 if (crafter.energy.type == EntityEnergyType.Heat) {
                     break;
@@ -135,7 +135,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                     minSize = crafter.size;
                 }
 
-                float power = crafter.energy.type == EntityEnergyType.Void ? 0d : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
+                double power = crafter.energy.type == EntityEnergyType.Void ? 0d : recipe.time * crafter.power / (crafter.craftingSpeed * crafter.energy.effectivity);
 
                 if (power < minPower) {
                     minPower = power;
@@ -151,14 +151,14 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                         break;
                     }
 
-                    float amount = power / fuel.fuelValue;
+                    double amount = power / fuel.fuelValue;
 
                     if (singleUsedFuel == null) {
                         singleUsedFuel = fuel;
                         singleUsedFuelAmount = amount;
                     }
                     else if (singleUsedFuel == fuel) {
-                        singleUsedFuelAmount = MathF.Min(singleUsedFuelAmount, amount);
+                        singleUsedFuelAmount = Math.Min(singleUsedFuelAmount, amount);
                     }
                     else {
                         singleUsedFuel = null;
@@ -175,8 +175,8 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
             }
 
             int size = Math.Max(minSize, (recipe.ingredients.Length + recipe.products.Length) / 2);
-            float sizeUsage = CostPerSecond * recipe.time * size;
-            float logisticsCost = (sizeUsage * (1d + (CostPerIngredientPerSize * recipe.ingredients.Length) + (CostPerProductPerSize * recipe.products.Length))) + (CostPerMj * minPower);
+            double sizeUsage = CostPerSecond * recipe.time * size;
+            double logisticsCost = (sizeUsage * (1d + (CostPerIngredientPerSize * recipe.ingredients.Length) + (CostPerProductPerSize * recipe.products.Length))) + (CostPerMj * minPower);
 
             if (singleUsedFuel == Database.electricity || singleUsedFuel == Database.voidEnergy || singleUsedFuel == Database.heat) {
                 singleUsedFuel = null;
@@ -187,7 +187,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
 
             foreach (var product in recipe.products) {
                 var var = variables[product.goods];
-                float amount = product.amount;
+                double amount = product.amount;
                 constraint.SetCoefficientCheck(var, amount, ref lastVariable[product.goods]);
 
                 if (product.goods is Item) {
@@ -216,17 +216,17 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
             }
 
             if (recipe.sourceEntity != null && recipe.sourceEntity.mapGenerated) {
-                float totalMining = 0d;
+                double totalMining = 0d;
 
                 foreach (var product in recipe.products) {
                     totalMining += product.amount;
                 }
 
-                float miningPenalty = MiningPenalty;
-                float totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
+                double miningPenalty = MiningPenalty;
+                double totalDensity = recipe.sourceEntity.mapGenDensity / totalMining;
 
                 if (totalDensity < MiningMaxDensityForPenalty) {
-                    float extraPenalty = MathF.Log(MiningMaxDensityForPenalty / totalDensity);
+                    double extraPenalty = Math.Log(MiningMaxDensityForPenalty / totalDensity);
                     miningPenalty += Math.Min(extraPenalty, MiningMaxExtraPenaltyForRarity);
                 }
 
@@ -270,18 +270,18 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
 
         var result = workspaceSolver.TrySolveWithDifferentSeeds();
         logger.Information("Cost analysis completed in {ElapsedTime}ms with result {result}", time.ElapsedMilliseconds, result);
-        float sumImportance = 1d;
+        double sumImportance = 1d;
         int totalRecipes = 0;
 
         if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
-            float objectiveValue = (float)objective.Value();
+            double objectiveValue = (double)objective.Value();
             logger.Information("Estimated modpack cost: {EstimatedCost}", DataUtils.FormatAmount(objectiveValue * 1000d, UnitOfMeasure.None));
             foreach (Goods g in Database.goods.all.ExceptExcluded(this)) {
                 if (variables[g] == null) {
                     continue;
                 }
 
-                float value = (float)variables[g].SolutionValue();
+                double value = (double)variables[g].SolutionValue();
                 export[g] = value;
             }
 
@@ -290,7 +290,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                     continue;
                 }
 
-                float recipeFlow = (float)constraints[recipe].DualValue();
+                double recipeFlow = (double)constraints[recipe].DualValue();
 
                 if (recipeFlow > 0d) {
                     totalRecipes++;
@@ -304,7 +304,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         }
         foreach (FactorioObject o in Database.objects.all.ExceptExcluded(this)) {
             if (!ShouldInclude(o)) {
-                export[o] = float.PositiveInfinity;
+                export[o] = double.PositiveInfinity;
                 continue;
             }
 
@@ -319,7 +319,7 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
                 }
             }
             else if (o is Entity entity) {
-                float minimal = float.PositiveInfinity;
+                double minimal = double.PositiveInfinity;
 
                 foreach (var item in entity.itemsToPlace) {
                     if (export[item] < minimal) {
@@ -332,14 +332,14 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
         cost = export;
         recipeProductCost = recipeProductionCost;
 
-        recipeWastePercentage = Database.recipes.CreateMapping<float>();
+        recipeWastePercentage = Database.recipes.CreateMapping<double>();
         if (result is Solver.ResultStatus.OPTIMAL or Solver.ResultStatus.FEASIBLE) {
             foreach (var (recipe, constraint) in constraints) {
                 if (constraint == null) {
                     continue;
                 }
 
-                float productCost = 0d;
+                double productCost = 0d;
 
                 foreach (var product in recipe.products) {
                     productCost += product.amount * export[product.goods];
@@ -398,17 +398,17 @@ public class CostAnalysis(bool onlyCurrentMilestones) : Analysis {
 
         _ = sb.Append(costPrefix).Append(" ¥").Append(DataUtils.FormatAmount(compareCost, UnitOfMeasure.None));
 
-        if (compareCostNow > compareCost && !float.IsPositiveInfinity(compareCostNow)) {
+        if (compareCostNow > compareCost && !double.IsPositiveInfinity(compareCostNow)) {
             _ = sb.Append(" (Currently ¥").Append(DataUtils.FormatAmount(compareCostNow, UnitOfMeasure.None)).Append(')');
         }
 
         return sb.ToString();
     }
 
-    public static float GetBuildingHours(Recipe recipe, float flow) => recipe.time * flow * (1000d / 3600d);
+    public static double GetBuildingHours(Recipe recipe, double flow) => recipe.time * flow * (1000d / 3600d);
 
     public string? GetItemAmount(Goods goods) {
-        float itemFlow = flow[goods];
+        double itemFlow = flow[goods];
         if (itemFlow <= 1d) {
             return null;
         }

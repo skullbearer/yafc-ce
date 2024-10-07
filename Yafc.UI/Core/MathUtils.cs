@@ -3,7 +3,7 @@
 namespace Yafc.UI;
 
 public static class MathUtils {
-    public static float Clamp(float value, float min, float max) {
+    public static double Clamp(double value, double min, double max) {
         if (value < min) {
             return min;
         }
@@ -27,11 +27,11 @@ public static class MathUtils {
         return value;
     }
 
-    public static int Round(float value) => (int)MathF.Round(value);
+    public static int Round(double value) => (int)Math.Round(value);
 
-    public static int Floor(float value) => (int)MathF.Floor(value);
+    public static int Floor(double value) => (int)Math.Floor(value);
 
-    public static int Ceil(float value) => (int)MathF.Ceiling(value);
+    public static int Ceil(double value) => (int)Math.Ceiling(value);
 
     public static byte FloatToByte(float f) {
         if (f <= 0) {
@@ -45,34 +45,46 @@ public static class MathUtils {
         return (byte)MathF.Round(f * 255);
     }
 
-    public static float LogarithmicToLinear(float value, float logMin, float logMax) {
-        if (value < 0f) {
-            value = 0f;
+    public static byte DoubleToByte(double d) {
+        if (d <= 0) {
+            return 0;
         }
 
-        float cur = MathF.Log(value);
+        if (d >= 1) {
+            return 255;
+        }
+
+        return (byte)Math.Round(d * 255);
+    }
+
+    public static double LogarithmicToLinear(double value, double logMin, double logMax) {
+        if (value < 0d) {
+            value = 0d;
+        }
+
+        double cur = Math.Log(value);
         if (cur <= logMin) {
-            return 0f;
+            return 0d;
         }
 
         if (cur >= logMax) {
-            return 1f;
+            return 1d;
         }
 
         return (cur - logMin) / (logMax - logMin);
     }
 
-    public static float LinearToLogarithmic(float value, float logMin, float logMax, float min, float max) {
-        if (value <= 0f) {
+    public static double LinearToLogarithmic(double value, double logMin, double logMax, double min, double max) {
+        if (value <= 0d) {
             return min;
         }
 
-        if (value >= 1f) {
+        if (value >= 1d) {
             return max;
         }
 
-        float logCur = logMin + ((logMax - logMin) * value);
+        double logCur = logMin + ((logMax - logMin) * value);
 
-        return MathF.Exp(logCur);
+        return Math.Exp(logCur);
     }
 }

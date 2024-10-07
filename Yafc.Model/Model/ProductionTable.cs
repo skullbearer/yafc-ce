@@ -11,9 +11,9 @@ using Yafc.UI;
 
 namespace Yafc.Model;
 
-public struct ProductionTableFlow(Goods goods, float amount, ProductionLink? link) {
+public struct ProductionTableFlow(Goods goods, double amount, ProductionLink? link) {
     public Goods goods = goods;
-    public float amount = amount;
+    public double amount = amount;
     public ProductionLink? link = link;
 }
 
@@ -56,7 +56,7 @@ public class ProductionTable : ProjectPageContents, IComparer<ProductionTableFlo
     private void Setup(List<RecipeRow> allRecipes, List<ProductionLink> allLinks) {
         containsDesiredProducts = false;
         foreach (var link in links) {
-            if (link.amount != 0f) {
+            if (link.amount != 0d) {
                 containsDesiredProducts = true;
             }
 
@@ -238,7 +238,7 @@ match:
             }
         }
 
-        if (recipe.fuel != null && !float.IsNaN(recipe.parameters.fuelUsagePerSecondPerBuilding)) {
+        if (recipe.fuel != null && !double.IsNaN(recipe.parameters.fuelUsagePerSecondPerBuilding)) {
             _ = summer.TryGetValue(recipe.fuel, out var prev);
             double fuelUsage = recipe.fuelUsagePerSecond;
             prev.cons += fuelUsage;
@@ -269,7 +269,7 @@ match:
                 foreach (var elem in recipe.subgroup.flow) {
                     _ = flowDict.TryGetValue(elem.goods, out var prev);
 
-                    if (elem.amount > 0f) {
+                    if (elem.amount > 0d) {
                         prev.prod += elem.amount;
                     }
                     else {
@@ -292,12 +292,12 @@ match:
             }
             else {
                 _ = flowDict.TryGetValue(link.goods, out flowParams);
-                if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8f && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent)) {
+                if (Math.Abs(flowParams.prod - flowParams.cons) > 1e-8d && link.owner.owner is RecipeRow recipe && recipe.owner.FindLink(link.goods, out var parent)) {
                     parent.flags |= ProductionLink.Flags.ChildNotMatched | ProductionLink.Flags.LinkNotMatched;
                 }
             }
 
-            link.linkFlow = (float)flowParams.prod;
+            link.linkFlow = (double)flowParams.prod;
         }
 
         ProductionTableFlow[] flowArr = new ProductionTableFlow[flowDict.Count];
@@ -305,7 +305,7 @@ match:
 
         foreach (var (k, (prod, cons)) in flowDict) {
             _ = FindLink(k, out var link);
-            flowArr[index++] = new ProductionTableFlow(k, (float)(prod - cons), link);
+            flowArr[index++] = new ProductionTableFlow(k, (double)(prod - cons), link);
         }
 
         Array.Sort(flowArr, 0, flowArr.Length, this);
@@ -316,9 +316,9 @@ match:
     /// Add/update the variable value for the constraint with the given amount, and store the recipe to the production link.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, float amount) {
+    private static void AddLinkCoef(Constraint cst, Variable var, ProductionLink link, RecipeRow recipe, double amount) {
         // GetCoefficient will return 0 when the variable is not available in the constraint
-        amount += (float)cst.GetCoefficient(var);
+        amount += (double)cst.GetCoefficient(var);
         _ = link.capturedRecipes.Add(recipe);
         cst.SetCoefficient(var, amount);
     }
@@ -331,14 +331,14 @@ match:
         List<ProductionLink> allLinks = [];
         Setup(allRecipes, allLinks);
         Variable[] vars = new Variable[allRecipes.Count];
-        float[] objCoefs = new float[allRecipes.Count];
+        double[] objCoefs = new double[allRecipes.Count];
 
         for (int i = 0; i < allRecipes.Count; i++) {
             var recipe = allRecipes[i];
             recipe.parameters = RecipeParameters.CalculateParameters(recipe);
-            var variable = productionTableSolver.MakeNumVar(0f, double.PositiveInfinity, recipe.recipe.name);
+            var variable = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, recipe.recipe.name);
 
-            if (recipe.fixedBuildings > 0f) {
+            if (recipe.fixedBuildings > 0d) {
                 double fixedRps = (double)recipe.fixedBuildings / recipe.parameters.recipeTime;
                 variable.SetBounds(fixedRps, fixedRps);
             }
@@ -349,8 +349,8 @@ match:
 
         for (int i = 0; i < allLinks.Count; i++) {
             var link = allLinks[i];
-            float min = link.algorithm == LinkAlgorithm.AllowOverConsumption ? float.NegativeInfinity : link.amount;
-            float max = link.algorithm == LinkAlgorithm.AllowOverProduction ? float.PositiveInfinity : link.amount;
+            double min = link.algorithm == LinkAlgorithm.AllowOverConsumption ? double.NegativeInfinity : link.amount;
+            double max = link.algorithm == LinkAlgorithm.AllowOverProduction ? double.PositiveInfinity : link.amount;
             var constraint = productionTableSolver.MakeConstraint(min, max, link.goods.name + "_recipe");
             constraints[i] = constraint;
             link.solverIndex = i;
@@ -365,17 +365,17 @@ match:
             for (int j = 0; j < recipe.recipe.products.Length; j++) {
                 var product = recipe.recipe.products[j];
 
-                if (product.amount <= 0f) {
+                if (product.amount <= 0d) {
                     continue;
                 }
 
                 if (recipe.FindLink(product.goods, out var link)) {
                     link.flags |= ProductionLink.Flags.HasProduction;
-                    float added = product.GetAmountPerRecipe(recipe.parameters.productivity);
+                    double added = product.GetAmountPerRecipe(recipe.parameters.productivity);
                     AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, added);
-                    float cost = product.goods.Cost();
+                    double cost = product.goods.Cost();
 
-                    if (cost > 0f) {
+                    if (cost > 0d) {
                         objCoefs[i] += added * cost;
                     }
                 }
@@ -399,7 +399,7 @@ match:
             links.fuel = links.spentFuel = null;
 
             if (recipe.fuel != null) {
-                float fuelAmount = recipe.parameters.fuelUsagePerSecondPerRecipe;
+                double fuelAmount = recipe.parameters.fuelUsagePerSecondPerRecipe;
 
                 if (recipe.FindLink(recipe.fuel, out var link)) {
                     links.fuel = link;
@@ -412,7 +412,7 @@ match:
                     link.flags |= ProductionLink.Flags.HasProduction;
                     AddLinkCoef(constraints[link.solverIndex], recipeVar, link, recipe, fuelAmount);
 
-                    if (spentFuel.Cost() > 0f) {
+                    if (spentFuel.Cost() > 0d) {
                         objCoefs[i] += fuelAmount * spentFuel.Cost();
                     }
                 }
@@ -422,7 +422,7 @@ match:
         }
 
         foreach (var link in allLinks) {
-            link.notMatchedFlow = 0f;
+            link.notMatchedFlow = 0d;
 
             if (!link.flags.HasFlags(ProductionLink.Flags.HasProductionAndConsumption)) {
                 if (!link.flags.HasFlagAny(ProductionLink.Flags.HasProductionAndConsumption) && !link.owner.HasDisabledRecipeReferencing(link.goods)) {
@@ -451,7 +451,7 @@ match:
             foreach (var link in deadlocks) {
                 // Adding negative slack to possible deadlocks (loops)
                 var constraint = constraints[link.solverIndex];
-                float cost = MathF.Abs(link.goods.Cost());
+                double cost = MathF.Abs(link.goods.Cost());
                 var negativeSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "negative-slack." + link.goods.name);
                 constraint.SetCoefficient(negativeSlack, cost);
                 objective.SetCoefficient(negativeSlack, 1f);
@@ -460,7 +460,7 @@ match:
 
             foreach (var link in splits) {
                 // Adding positive slack to splits
-                float cost = MathF.Abs(link.goods.Cost());
+                double cost = MathF.Abs(link.goods.Cost());
                 var constraint = constraints[link.solverIndex];
                 var positiveSlack = productionTableSolver.MakeNumVar(0d, double.PositiveInfinity, "positive-slack." + link.goods.name);
                 constraint.SetCoefficient(positiveSlack, -cost);
@@ -481,17 +481,17 @@ match:
 
                     if (posSlack is not null && posSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
                         linkList.Add(allLinks[i]);
-                        allLinks[i].notMatchedFlow += (float)posSlack.SolutionValue();
+                        allLinks[i].notMatchedFlow += (double)posSlack.SolutionValue();
                     }
 
                     if (negSlack is not null && negSlack.BasisStatus() != Solver.BasisStatus.AT_LOWER_BOUND) {
                         linkList.Add(allLinks[i]);
-                        allLinks[i].notMatchedFlow -= (float)negSlack.SolutionValue();
+                        allLinks[i].notMatchedFlow -= (double)negSlack.SolutionValue();
                     }
                 }
 
                 foreach (var link in linkList) {
-                    if (link.notMatchedFlow == 0f) {
+                    if (link.notMatchedFlow == 0d) {
                         continue;
                     }
 
@@ -499,7 +499,7 @@ match:
                     RecipeRow? ownerRecipe = link.owner.owner as RecipeRow;
 
                     while (ownerRecipe != null) {
-                        if (link.notMatchedFlow > 0f) {
+                        if (link.notMatchedFlow > 0d) {
                             ownerRecipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
                         }
                         else {
@@ -515,7 +515,7 @@ match:
 
                     foreach (var link in linkList) {
                         if (link.flags.HasFlags(ProductionLink.Flags.LinkRecursiveNotMatched)) {
-                            if (link.notMatchedFlow > 0f) {
+                            if (link.notMatchedFlow > 0d) {
                                 recipe.parameters.warningFlags |= WarningFlags.OverproductionRequired;
                             }
                             else {
@@ -541,7 +541,7 @@ match:
         for (int i = 0; i < allLinks.Count; i++) {
             var link = allLinks[i];
             var constraint = constraints[i];
-            link.dualValue = (float)constraint.DualValue();
+            link.dualValue = (double)constraint.DualValue();
 
             if (constraint == null) {
                 continue;
@@ -688,8 +688,8 @@ match:
     }
 
     public int Compare(ProductionTableFlow x, ProductionTableFlow y) {
-        float amt1 = x.goods.fluid != null ? x.amount / 50f : x.amount;
-        float amt2 = y.goods.fluid != null ? y.amount / 50f : y.amount;
+        double amt1 = x.goods.fluid != null ? x.amount / 50d : x.amount;
+        double amt2 = y.goods.fluid != null ? y.amount / 50d : y.amount;
 
         return amt1.CompareTo(amt2);
     }

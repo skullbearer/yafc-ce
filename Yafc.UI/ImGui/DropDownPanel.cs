@@ -103,8 +103,8 @@ public class SimpleDropDown : DropDownPanel {
     protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize) {
         var size = gui.contentSize;
         float targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
-        float x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
-        float y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
+        float x = (float)MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
+        float y = (float)MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
 
         return new Vector2(x, y);
     }
@@ -138,13 +138,13 @@ public abstract class Tooltip : AttachedPanel {
         float x, y;
 
         if (targetRect.Bottom < 4) {
-            y = MathUtils.Clamp(targetRect.Bottom, 0f, gui.contentSize.Y - contentSize.Y);
-            x = MathUtils.Clamp(targetRect.X, 0f, gui.contentSize.X - contentSize.X);
+            y = (float)MathUtils.Clamp(targetRect.Bottom, 0f, gui.contentSize.Y - contentSize.Y);
+            x = (float)MathUtils.Clamp(targetRect.X, 0f, gui.contentSize.X - contentSize.X);
         }
         else {
             x = targetRect.Right + contentSize.X <= gui.contentSize.X ? targetRect.Right :
                 targetRect.X >= contentSize.X ? targetRect.X - contentSize.X : (gui.contentSize.X - contentSize.X) / 2;
-            y = MathUtils.Clamp(targetRect.Y, 0f, gui.contentSize.Y - contentSize.Y);
+            y = (float)MathUtils.Clamp(targetRect.Y, 0f, gui.contentSize.Y - contentSize.Y);
         }
 
         return new Vector2(x, y);

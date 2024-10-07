@@ -23,3 +23,4 @@ tar czf Yafc-CE-OSX-arm64-$VERSION.tar.gz OSX-arm64
 zip -r Yafc-CE-Windows-$VERSION.zip Windows
 popd
 
+read op "Press Enter to close..."

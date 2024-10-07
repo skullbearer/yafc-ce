@@ -16,8 +16,8 @@ public static partial class DataUtils {
     private static readonly ILogger logger = Logging.GetLogger(typeof(DataUtils));
 
     public static readonly FactorioObjectComparer<FactorioObject> DefaultOrdering = new FactorioObjectComparer<FactorioObject>((x, y) => {
-        float yFlow = y.ApproximateFlow();
-        float xFlow = x.ApproximateFlow();
+        double yFlow = y.ApproximateFlow();
+        double xFlow = x.ApproximateFlow();
 
         if (xFlow != yFlow) {
             return xFlow.CompareTo(yFlow);
@@ -27,8 +27,8 @@ public static partial class DataUtils {
         Recipe? ry = y as Recipe;
 
         if (rx != null || ry != null) {
-            float xWaste = rx?.RecipeWaste() ?? 0;
-            float yWaste = ry?.RecipeWaste() ?? 0;
+            double xWaste = rx?.RecipeWaste() ?? 0;
+            double yWaste = ry?.RecipeWaste() ?? 0;
 
             return xWaste.CompareTo(yWaste);
         }
@@ -36,7 +36,7 @@ public static partial class DataUtils {
         return y.Cost().CompareTo(x.Cost());
     });
     public static readonly FactorioObjectComparer<Goods> FuelOrdering = new FactorioObjectComparer<Goods>((x, y) => {
-        if (x.fuelValue <= 0f && y.fuelValue <= 0f) {
+        if (x.fuelValue <= 0d && y.fuelValue <= 0d) {
             if (x is Fluid fx && y is Fluid fy) {
                 return (x.Cost() / fx.heatValue).CompareTo(y.Cost() / fy.heatValue);
             }
@@ -46,8 +46,8 @@ public static partial class DataUtils {
         return (x.Cost() / x.fuelValue).CompareTo(y.Cost() / y.fuelValue);
     });
     public static readonly FactorioObjectComparer<Recipe> DefaultRecipeOrdering = new FactorioObjectComparer<Recipe>((x, y) => {
-        float yFlow = y.ApproximateFlow();
-        float xFlow = x.ApproximateFlow();
+        double yFlow = y.ApproximateFlow();
+        double xFlow = x.ApproximateFlow();
 
         if (yFlow != xFlow) {
             return yFlow > xFlow ? 1 : -1;
@@ -269,9 +269,9 @@ public static partial class DataUtils {
         return false;
     }
 
-    public static void SetCoefficientCheck(this Constraint cstr, Variable var, float amount, ref Variable prev) {
+    public static void SetCoefficientCheck(this Constraint cstr, Variable var, double amount, ref Variable prev) {
         if (prev == var) {
-            amount += (float)cstr.GetCoefficient(var);
+            amount += (double)cstr.GetCoefficient(var);
         }
         else {
             prev = var;
@@ -316,8 +316,8 @@ public static partial class DataUtils {
         }
     }
 
-    public static float GetProductionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
-        float amount = 0f;
+    public static double GetProductionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
+        double amount = 0d;
 
         foreach (var p in recipe.products) {
             if (p.goods == product) {
@@ -327,8 +327,8 @@ public static partial class DataUtils {
         return amount;
     }
 
-    public static float GetProductionForRow(this RecipeRow row, Goods product) {
-        float amount = 0f;
+    public static double GetProductionForRow(this RecipeRow row, Goods product) {
+        double amount = 0d;
 
         foreach (var p in row.recipe.products) {
             if (p.goods == product) {
@@ -338,8 +338,8 @@ public static partial class DataUtils {
         return amount;
     }
 
-    public static float GetConsumptionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
-        float amount = 0f;
+    public static double GetConsumptionPerRecipe(this RecipeOrTechnology recipe, Goods product) {
+        double amount = 0d;
 
         foreach (var ingredient in recipe.ingredients) {
             if (ingredient.ContainsVariant(product)) {
@@ -349,12 +349,12 @@ public static partial class DataUtils {
         return amount;
     }
 
-    public static float GetConsumptionForRow(this RecipeRow row, Goods ingredient) {
-        float amount = 0f;
+    public static double GetConsumptionForRow(this RecipeRow row, Goods ingredient) {
+        double amount = 0d;
 
         foreach (var i in row.recipe.ingredients) {
             if (i.ContainsVariant(ingredient)) {
-                amount += i.amount * (float)row.recipesPerSecond;
+                amount += i.amount * (double)row.recipesPerSecond;
             }
         }
         return amount;
@@ -454,49 +454,49 @@ public static partial class DataUtils {
     }
 
     private const char NO = (char)0;
-    public static readonly (char suffix, float multiplier, string format)[] FormatSpec =
+    public static readonly (char suffix, double multiplier, string format)[] FormatSpec =
     [
-        ('μ', 1e6f, "0.##"),
-        ('μ', 1e6f, "0.##"),
-        ('μ', 1e6f, "0.#"),
-        ('μ', 1e6f, "0"),
-        ('μ', 1e6f, "0"), // skipping m (milli-) because too similar to M (mega-)
-        (NO, 1e0f, "0.####"),
-        (NO, 1e0f, "0.###"),
-        (NO, 1e0f, "0.##"),
-        (NO, 1e0f, "0.##"), // [1-10]
-        (NO, 1e0f, "0.#"),
-        (NO, 1e0f, "0"),
-        ('k', 1e-3f, "0.##"),
-        ('k', 1e-3f, "0.#"),
-        ('k', 1e-3f, "0"),
-        ('M', 1e-6f, "0.##"),
-        ('M', 1e-6f, "0.#"),
-        ('M', 1e-6f, "0"),
-        ('G', 1e-9f, "0.##"),
-        ('G', 1e-9f, "0.#"),
-        ('G', 1e-9f, "0"),
-        ('T', 1e-12f, "0.##"),
-        ('T', 1e-12f, "0.#"),
+        ('μ', 1e6d, "0.##"),
+        ('μ', 1e6d, "0.##"),
+        ('μ', 1e6d, "0.#"),
+        ('μ', 1e6d, "0"),
+        ('μ', 1e6d, "0"), // skipping m (milli-) because too similar to M (mega-)
+        (NO, 1e0d, "0.####"),
+        (NO, 1e0d, "0.###"),
+        (NO, 1e0d, "0.##"),
+        (NO, 1e0d, "0.##"), // [1-10]
+        (NO, 1e0d, "0.#"),
+        (NO, 1e0d, "0"),
+        ('k', 1e-3d, "0.##"),
+        ('k', 1e-3d, "0.#"),
+        ('k', 1e-3d, "0"),
+        ('M', 1e-6d, "0.##"),
+        ('M', 1e-6d, "0.#"),
+        ('M', 1e-6d, "0"),
+        ('G', 1e-9d, "0.##"),
+        ('G', 1e-9d, "0.#"),
+        ('G', 1e-9d, "0"),
+        ('T', 1e-12d, "0.##"),
+        ('T', 1e-12d, "0.#"),
     ];
 
-    public static readonly (char suffix, float multiplier, string format)[] PreciseFormat =
+    public static readonly (char suffix, double multiplier, string format)[] PreciseFormat =
     [
-        ('μ', 1e6f, "0.000000"),
-        ('μ', 1e6f, "0.000000"),
-        ('μ', 1e6f, "0.00000"),
-        ('μ', 1e6f, "0.0000"),
-        ('μ', 1e6f, "0.0000"), // skipping m (milli-) because too similar to M (mega-)
-        (NO, 1e0f, "0.00000000"),
-        (NO, 1e0f, "0.0000000"),
-        (NO, 1e0f, "0.000000"),
-        (NO, 1e0f, "0.000000"), // [1-10]
-        (NO, 1e0f, "00.00000"),
-        (NO, 1e0f, "000.0000"),
-        (NO, 1e0f, "0 000.000"),
-        (NO, 1e0f, "00 000.00"),
-        (NO, 1e0f, "000 000.0"),
-        (NO, 1e0f, "0 000 000"),
+        ('μ', 1e6d, "0.000000"),
+        ('μ', 1e6d, "0.000000"),
+        ('μ', 1e6d, "0.00000"),
+        ('μ', 1e6d, "0.0000"),
+        ('μ', 1e6d, "0.0000"), // skipping m (milli-) because too similar to M (mega-)
+        (NO, 1e0d, "0.00000000"),
+        (NO, 1e0d, "0.0000000"),
+        (NO, 1e0d, "0.000000"),
+        (NO, 1e0d, "0.000000"), // [1-10]
+        (NO, 1e0d, "00.00000"),
+        (NO, 1e0d, "000.0000"),
+        (NO, 1e0d, "0 000.000"),
+        (NO, 1e0d, "00 000.00"),
+        (NO, 1e0d, "000 000.0"),
+        (NO, 1e0d, "0 000 000"),
     ];
 
     private static readonly StringBuilder amountBuilder = new StringBuilder();
@@ -508,7 +508,7 @@ public static partial class DataUtils {
 
     public static bool HasFlagAny<T>(this T enumeration, T flags) where T : unmanaged, Enum => (Unsafe.As<T, int>(ref enumeration) & Unsafe.As<T, int>(ref flags)) != 0;
 
-    public static string FormatTime(float time) {
+    public static string FormatTime(double time) {
         _ = amountBuilder.Clear();
 
         if (time < 10f) {
@@ -534,14 +534,14 @@ public static partial class DataUtils {
         return $"{time / 3600f:#} hours";
     }
 
-    public static string FormatAmount(float amount, UnitOfMeasure unit, string? prefix = null, string? suffix = null, bool precise = false) {
+    public static string FormatAmount(double amount, UnitOfMeasure unit, string? prefix = null, string? suffix = null, bool precise = false) {
         var (multiplier, unitSuffix) = Project.current == null ? (1f, null) : Project.current.ResolveUnitOfMeasure(unit);
 
         return FormatAmountRaw(amount, multiplier, unitSuffix, precise ? PreciseFormat : FormatSpec, prefix, suffix);
     }
 
-    public static string FormatAmountRaw(float amount, float unitMultiplier, string? unitSuffix, (char suffix, float multiplier, string format)[] formatSpec, string? prefix = null, string? suffix = null) {
-        if (float.IsNaN(amount) || float.IsInfinity(amount)) {
+    public static string FormatAmountRaw(double amount, double unitMultiplier, string? unitSuffix, (char suffix, double multiplier, string format)[] formatSpec, string? prefix = null, string? suffix = null) {
+        if (double.IsNaN(amount) || double.IsInfinity(amount)) {
             return "-";
         }
 
@@ -560,7 +560,7 @@ public static partial class DataUtils {
         }
 
         amount *= unitMultiplier;
-        int idx = MathUtils.Clamp(MathUtils.Floor(MathF.Log10(amount)) + 8, 0, formatSpec.Length - 1);
+        int idx = MathUtils.Clamp(MathUtils.Floor(Math.Log10(amount)) + 8, 0, formatSpec.Length - 1);
         var val = formatSpec[idx];
         _ = amountBuilder.Append((amount * val.multiplier).ToString(val.format));
 
@@ -592,35 +592,35 @@ public static partial class DataUtils {
     /// <param name="unit">The unit that applies to this value. <see cref="UnitOfMeasure.Celsius"/> is not supported.</param>
     /// <returns>True if the string could be parsed as the specified unit, false otherwise.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="unit"/> is <see cref="UnitOfMeasure.Celsius"/>.</exception>
-    public static bool TryParseAmount(string str, out float amount, UnitOfMeasure unit) {
+    public static bool TryParseAmount(string str, out double amount, UnitOfMeasure unit) {
         if (unit is UnitOfMeasure.Celsius) { throw new ArgumentException("Parsing to UnitOfMeasure.Celcius is not supported.", nameof(unit)); }
 
         var (mul, _) = Project.current.ResolveUnitOfMeasure(unit);
-        float multiplier = unit is UnitOfMeasure.Megawatt or UnitOfMeasure.Megajoule ? 1e6f : 1f;
+        double multiplier = unit is UnitOfMeasure.Megawatt or UnitOfMeasure.Megajoule ? 1e6f : 1f;
 
         str = str.Replace(" ", ""); // Remove spaces to support parsing from the "10 000" precise format, and to simplify the regex.
         var groups = ParseAmountRegex().Match(str).Groups;
         amount = 0;
 
-        if (groups.Count < 4 || !float.TryParse(groups[1].Value, out amount)) {
+        if (groups.Count < 4 || !double.TryParse(groups[1].Value, out amount)) {
             return false;
         }
 
         switch (groups[2].Value.SingleOrDefault()) { // μukMGT
             case 'u' or 'μ':
-                multiplier = 1e-6f;
+                multiplier = 1e-6d;
                 break;
             case 'k' or 'K':
-                multiplier = 1e3f;
+                multiplier = 1e3d;
                 break;
             case 'm' or 'M':
-                multiplier = 1e6f;
+                multiplier = 1e6d;
                 break;
             case 'g' or 'G':
-                multiplier = 1e9f;
+                multiplier = 1e9d;
                 break;
             case 't' or 'T':
-                multiplier = 1e12f;
+                multiplier = 1e12d;
                 break;
             case 'U' or 'Μ' or 'K': // capital u or μ, or Kelvin symbol; false positive in the regex match
                 return false;
@@ -648,10 +648,10 @@ public static partial class DataUtils {
                     return false; // allow belts for items only
                 }
                 if (Project.current.preferences.itemUnit > 0) {
-                    mul = 1 / Project.current.preferences.itemUnit;
+                    mul = 1d / Project.current.preferences.itemUnit;
                 }
                 else if (Project.current.preferences.defaultBelt is not null) {
-                    mul = 1 / Project.current.preferences.defaultBelt.beltItemsPerSecond;
+                    mul = 1d / Project.current.preferences.defaultBelt.beltItemsPerSecond;
                 }
                 else {
                     return false; // I don't know what to divide by when setting mul
@@ -662,16 +662,16 @@ public static partial class DataUtils {
                 if (unit != UnitOfMeasure.FluidPerSecond || Project.current.preferences.fluidUnit == 0) {
                     return false;
                 }
-                mul = 1 / Project.current.preferences.fluidUnit;
+                mul = 1d / Project.current.preferences.fluidUnit;
                 break;
             case "/S":
-                mul = 1;
+                mul = 1d;
                 break;
             case "/M":
-                mul = 60;
+                mul = 60d;
                 break;
             case "/H":
-                mul = 3600;
+                mul = 3600d;
                 break;
             case "/T":
                 (mul, _) = Project.current.preferences.GetPerTimeUnit();

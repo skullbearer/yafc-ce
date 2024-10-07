@@ -141,16 +141,16 @@ public class Project : ModelObject {
         }
     }
 
-    public (float multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) => unit switch {
-        UnitOfMeasure.Percent => (100f, "%"),
-        UnitOfMeasure.Second => (1f, "s"),
+    public (double multiplier, string suffix) ResolveUnitOfMeasure(UnitOfMeasure unit) => unit switch {
+        UnitOfMeasure.Percent => (100d, "%"),
+        UnitOfMeasure.Second => (1d, "s"),
         UnitOfMeasure.PerSecond => preferences.GetPerTimeUnit(),
         UnitOfMeasure.ItemPerSecond => preferences.GetItemPerTimeUnit(),
         UnitOfMeasure.FluidPerSecond => preferences.GetFluidPerTimeUnit(),
-        UnitOfMeasure.Megawatt => (1e6f, "W"),
-        UnitOfMeasure.Megajoule => (1e6f, "J"),
-        UnitOfMeasure.Celsius => (1f, "°"),
-        _ => (1f, ""),
+        UnitOfMeasure.Megawatt => (1e6d, "W"),
+        UnitOfMeasure.Megajoule => (1e6d, "J"),
+        UnitOfMeasure.Celsius => (1d, "°"),
+        _ => (1d, ""),
     };
 
     public ProjectPage? FindPage(Guid guid) => pagesByGuid.TryGetValue(guid, out var page) ? page : null;
@@ -218,12 +218,12 @@ public class Project : ModelObject {
 public class ProjectSettings(Project project) : ModelObject<Project>(project) {
     public List<FactorioObject> milestones { get; } = [];
     public SortedList<FactorioObject, ProjectPerItemFlags> itemFlags { get; } = new SortedList<FactorioObject, ProjectPerItemFlags>(DataUtils.DeterministicComparer);
-    public float miningProductivity { get; set; }
-    public float researchSpeedBonus { get; set; }
-    public float researchProductivity { get; set; }
+    public double miningProductivity { get; set; }
+    public double researchSpeedBonus { get; set; }
+    public double researchProductivity { get; set; }
     public int reactorSizeX { get; set; } = 2;
     public int reactorSizeY { get; set; } = 2;
-    public float PollutionCostModifier { get; set; } = 0;
+    public double PollutionCostModifier { get; set; } = 0;
     public event Action<bool>? changed;
     protected internal override void ThisChanged(bool visualOnly) => changed?.Invoke(visualOnly);
 
@@ -239,13 +239,13 @@ public class ProjectSettings(Project project) : ModelObject<Project>(project) {
 
     public ProjectPerItemFlags Flags(FactorioObject obj) => itemFlags.TryGetValue(obj, out var val) ? val : 0;
 
-    public float GetReactorBonusMultiplier() => 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
+    public double GetReactorBonusMultiplier() => 4f - (2f / reactorSizeX) - (2f / reactorSizeY);
 }
 
 public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
     public int time { get; set; } = 1;
-    public float itemUnit { get; set; }
-    public float fluidUnit { get; set; }
+    public double itemUnit { get; set; }
+    public double fluidUnit { get; set; }
     public EntityBelt? defaultBelt { get; set; }
     public EntityInserter? defaultInserter { get; set; }
     public int inserterCapacity { get; set; } = 1;
@@ -264,34 +264,34 @@ public class ProjectPreferences(Project owner) : ModelObject<Project>(owner) {
         defaultInserter ??= Database.allInserters.OrderBy(x => x.energy.type).ThenBy(x => 1f / x.inserterSwingTime).FirstOrDefault();
     }
 
-    public (float multiplier, string suffix) GetTimeUnit() => time switch {
-        1 or 0 => (1f, "s"),
-        60 => (1f / 60f, "m"),
-        3600 => (1f / 3600f, "h"),
-        _ => (1f / time, "t"),
+    public (double multiplier, string suffix) GetTimeUnit() => time switch {
+        1 or 0 => (1d, "s"),
+        60 => (1d / 60d, "m"),
+        3600 => (1d / 3600d, "h"),
+        _ => (1d / time, "t"),
     };
 
-    public (float multiplier, string suffix) GetPerTimeUnit() => time switch {
-        1 or 0 => (1f, "/s"),
-        60 => (60f, "/m"),
-        3600 => (3600f, "/h"),
+    public (double multiplier, string suffix) GetPerTimeUnit() => time switch {
+        1 or 0 => (1d, "/s"),
+        60 => (60d, "/m"),
+        3600 => (3600d, "/h"),
         _ => (time, "/t"),
     };
 
-    public (float multiplier, string suffix) GetItemPerTimeUnit() {
-        if (itemUnit == 0f) {
+    public (double multiplier, string suffix) GetItemPerTimeUnit() {
+        if (itemUnit == 0d) {
             return GetPerTimeUnit();
         }
 
-        return (1f / itemUnit, "b");
+        return (1d / itemUnit, "b");
     }
 
-    public (float multiplier, string suffix) GetFluidPerTimeUnit() {
-        if (fluidUnit == 0f) {
+    public (double multiplier, string suffix) GetFluidPerTimeUnit() {
+        if (fluidUnit == 0d) {
             return GetPerTimeUnit();
         }
 
-        return (1f / fluidUnit, "p");
+        return (1d / fluidUnit, "p");
     }
 
     public void SetSourceResource(Goods goods, bool value) {

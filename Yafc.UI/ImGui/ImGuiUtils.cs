@@ -411,7 +411,7 @@ public static class ImGuiUtils {
         }
 
         float positionX = (gui.mousePosition.X - sliderRect.X - 0.5f) / (sliderRect.Width - 1f);
-        newValue = MathUtils.Clamp(positionX, 0f, 1f);
+        newValue = (float)MathUtils.Clamp(positionX, 0f, 1f);
         gui.Rebuild();
 
         return true;
