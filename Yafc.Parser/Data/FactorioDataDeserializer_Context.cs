@@ -85,8 +85,8 @@ internal partial class FactorioDataDeserializer {
         reactorProduction.flags |= RecipeFlags.ScaleProductionWithPower;
         reactorProduction.ingredients = [];
 
-        voidEntityEnergy = new EntityEnergy { type = EntityEnergyType.Void, effectivity = float.PositiveInfinity };
-        laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = float.PositiveInfinity };
+        voidEntityEnergy = new EntityEnergy { type = EntityEnergyType.Void, effectivity = double.PositiveInfinity };
+        laborEntityEnergy = new EntityEnergy { type = EntityEnergyType.Labor, effectivity = double.PositiveInfinity };
     }
 
     private T GetObject<T>(string name) where T : FactorioObject, new() => GetObject<T, T>(name);
@@ -175,7 +175,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         // Check for 'packing.ingredients == unpacking.products'.
-        float ratio = 0;
+        double ratio = 0;
         Recipe? largerRecipe = null;
 
         // Check for 'packing.ingredients == unpacking.products'.
@@ -192,8 +192,8 @@ internal partial class FactorioDataDeserializer {
 
         // Test to see if running `first` M times and `second` once, or vice versa, can reproduce all the original input.
         // Track which recipe is larger to keep ratio an integer and prevent floating point rounding issues.
-        static bool checkRatios(Recipe first, Recipe second, ref float ratio, ref Recipe? larger) {
-            Dictionary<Goods, float> ingredients = [];
+        static bool checkRatios(Recipe first, Recipe second, ref double ratio, ref Recipe? larger) {
+            Dictionary<Goods, double> ingredients = [];
 
             foreach (var item in first.ingredients) {
                 if (ingredients.ContainsKey(item.goods)) {
@@ -204,7 +204,7 @@ internal partial class FactorioDataDeserializer {
             }
 
             foreach (var item in second.products) {
-                if (!ingredients.TryGetValue(item.goods, out float count)) {
+                if (!ingredients.TryGetValue(item.goods, out double count)) {
                     return false;
                 }
 
@@ -231,8 +231,8 @@ internal partial class FactorioDataDeserializer {
 
         // Within the previous check, make sure the ratio is an integer.
         // If the ratio was set by a previous ingredient/product Goods, make sure this ratio matches the previous one.
-        static bool checkProportions(Recipe currentLargerRecipe, float largerCount, float smallerCount, ref float ratio, ref Recipe? larger) {
-            if (largerCount / smallerCount != MathF.Floor(largerCount / smallerCount)) {
+        static bool checkProportions(Recipe currentLargerRecipe, double largerCount, double smallerCount, ref double ratio, ref Recipe? larger) {
+            if (largerCount / smallerCount != Math.Floor(largerCount / smallerCount)) {
                 return false;
             }
             if (ratio != 0 && ratio != largerCount / smallerCount) {
@@ -284,8 +284,8 @@ internal partial class FactorioDataDeserializer {
                         // If the ingredient has variants and is an output, we aren't doing catalyst things: water@15-90 to water@90 does produce water@90,
                         // even if it consumes 10 water@15-90 to produce 9 water@90.
                         Ingredient? ingredient = recipe.ingredients.FirstOrDefault(i => i.goods == product.goods && i.variants is null);
-                        float inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
-                        float outputAmount = product.amount;
+                        double inputAmount = netProduction ? (ingredient?.amount ?? 0) : 0;
+                        double outputAmount = product.amount;
 
                         if (outputAmount > inputAmount) {
                             itemProduction.Add(product.goods, recipe);
@@ -294,9 +294,9 @@ internal partial class FactorioDataDeserializer {
 
                     foreach (var ingredient in recipe.ingredients) {
                         // The reverse also applies. 9 water@15-90 to produce 10 water@15 consumes water@90, even though it's a net water producer.
-                        float inputAmount = ingredient.amount;
+                        double inputAmount = ingredient.amount;
                         Product? product = ingredient.variants is null ? recipe.products.FirstOrDefault(p => p.goods == ingredient.goods) : null;
-                        float outputAmount = netProduction ? (product?.amount ?? 0) : 0;
+                        double outputAmount = netProduction ? (product?.amount ?? 0) : 0;
 
                         if (ingredient.variants == null && inputAmount > outputAmount) {
                             itemUsages.Add(ingredient.goods, recipe);

@@ -55,7 +55,7 @@ internal partial class FactorioDataDeserializer {
         foreach (var recipe in allObjects.OfType<Recipe>()) {
             foreach (var product in recipe.products) {
                 if (product.productivityAmount == product.amount) {
-                    float catalyst = recipe.GetConsumptionPerRecipe(product.goods);
+                    double catalyst = recipe.GetConsumptionPerRecipe(product.goods);
 
                     if (catalyst > 0f) {
                         product.SetCatalyst(catalyst);
@@ -126,9 +126,9 @@ internal partial class FactorioDataDeserializer {
     }
 
     private Func<LuaTable, Product> LoadProduct(string typeDotName, int multiplier = 1) => table => {
-        bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out float amount);
+        bool haveExtraData = LoadItemData(table, true, typeDotName, out var goods, out double amount);
         amount *= multiplier;
-        float min = amount, max = amount;
+        double min = amount, max = amount;
 
         if (haveExtraData && amount == 0) {
             _ = table.Get("amount_min", out min);
@@ -138,7 +138,7 @@ internal partial class FactorioDataDeserializer {
         }
 
         Product product = new Product(goods, min, max, table.Get("probability", 1f));
-        float catalyst = table.Get("catalyst_amount", 0f);
+        double catalyst = table.Get("catalyst_amount", 0f);
 
         if (catalyst > 0f) {
             product.SetCatalyst(catalyst);
@@ -158,14 +158,14 @@ internal partial class FactorioDataDeserializer {
             return [];
         }
 
-        return [(new Product(GetObject<Item>(name), table.Get("result_count", out float amount) ? amount : table.Get("count", 1)))];
+        return [(new Product(GetObject<Item>(name), table.Get("result_count", out double amount) ? amount : table.Get("count", 1)))];
     }
 
     private Ingredient[] LoadIngredientList(LuaTable table, string typeDotName, ErrorCollector errorCollector) {
         _ = table.Get("ingredients", out LuaTable? ingredientsList);
 
         return ingredientsList?.ArrayElements<LuaTable>().Select(table => {
-            bool haveExtraData = LoadItemData(table, false, typeDotName, out var goods, out float amount);
+            bool haveExtraData = LoadItemData(table, false, typeDotName, out var goods, out double amount);
 
             if (goods is null) {
                 errorCollector.Error($"Failed to load at least one ingredient for {typeDotName}.", ErrorSeverity.AnalysisWarning);

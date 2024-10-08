@@ -322,7 +322,7 @@ internal partial class FactorioDataDeserializer {
         }
     }
 
-    private static float ParseEnergy(string? energy) {
+    private static double ParseEnergy(string? energy) {
         if (energy is null || energy.Length < 2) {
             return 0f;
         }
@@ -330,21 +330,21 @@ internal partial class FactorioDataDeserializer {
         char energyMul = energy[^2];
         // internally store energy in megawatts / megajoules to be closer to 1
         if (char.IsLetter(energyMul)) {
-            float energyBase = float.Parse(energy[..^2]);
+            double energyBase = double.Parse(energy[..^2]);
 
             switch (energyMul) {
                 case 'k':
-                case 'K': return energyBase * 1e-3f;
+                case 'K': return energyBase * 1e-3d;
                 case 'M': return energyBase;
-                case 'G': return energyBase * 1e3f;
-                case 'T': return energyBase * 1e6f;
-                case 'P': return energyBase * 1e9f;
-                case 'E': return energyBase * 1e12f;
-                case 'Z': return energyBase * 1e15f;
-                case 'Y': return energyBase * 1e18f;
+                case 'G': return energyBase * 1e3d;
+                case 'T': return energyBase * 1e6d;
+                case 'P': return energyBase * 1e9d;
+                case 'E': return energyBase * 1e12d;
+                case 'Z': return energyBase * 1e15d;
+                case 'Y': return energyBase * 1e18d;
             }
         }
-        return float.Parse(energy[..^1]) * 1e-6f;
+        return double.Parse(energy[..^1]) * 1e-6d;
     }
 
     private void DeserializeItem(LuaTable table, ErrorCollector _) {
@@ -478,7 +478,7 @@ internal partial class FactorioDataDeserializer {
         return GetObject<Item>(name);
     }
 
-    private bool LoadItemData(LuaTable table, bool useTemperature, string typeDotName, [NotNull] out Goods? goods, out float amount) {
+    private bool LoadItemData(LuaTable table, bool useTemperature, string typeDotName, [NotNull] out Goods? goods, out double amount) {
         if (table.Get<string>("name", out _)) {
             goods = LoadItemOrFluid(table, useTemperature, out string? name);
             _ = table.Get("amount", out amount);
@@ -640,8 +640,8 @@ internal partial class FactorioDataDeserializer {
                 else if (table.Get(i + 1, out LuaTable? t)) {
                     Localize(t);
                 }
-                else if (table.Get(i + 1, out float f)) {
-                    _ = localeBuilder.Append(f);
+                else if (table.Get(i + 1, out double d)) {
+                    _ = localeBuilder.Append(d);
                 }
             }
             else if (control.StartsWith("plural")) {
