@@ -74,10 +74,10 @@ public class ModuleFillerParametersScreen : PseudoScreen {
     /// Draw the slider that controls the price of the modules that are automatically selected.
     /// </summary>
     public static void BuildSimple(ImGui gui, ModuleFillerParameters modules) {
-        float payback = modules.autoFillPayback;
-        float modulesLog = MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
+        float payback = (float)modules.autoFillPayback;
+        float modulesLog = (float)MathUtils.LogarithmicToLinear(payback, ModulesMinPayback, ModulesMaxPayback);
         if (gui.BuildSlider(modulesLog, out float newValue)) {
-            payback = MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
+            payback = (float)MathUtils.LinearToLogarithmic(newValue, ModulesMinPayback, ModulesMaxPayback, 0f, float.MaxValue); // JSON can't handle infinities
             modules.autoFillPayback = payback;
         }
 
@@ -172,21 +172,21 @@ public class ModuleFillerParametersScreen : PseudoScreen {
         gui.AllocateSpacing();
         using (gui.EnterRow()) {
             gui.BuildText("Mining productivity bonus (project-wide setting): ");
-            DisplayAmount amount = new(Project.current.settings.miningProductivity, UnitOfMeasure.Percent);
+            DisplayAmount amount = new((float)Project.current.settings.miningProductivity, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                 Project.current.settings.RecordUndo().miningProductivity = amount.Value;
             }
         }
         using (gui.EnterRow()) {
             gui.BuildText("Research speed bonus (project-wide setting): ");
-            DisplayAmount amount = new(Project.current.settings.researchSpeedBonus, UnitOfMeasure.Percent);
+            DisplayAmount amount = new((float)Project.current.settings.researchSpeedBonus, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                 Project.current.settings.RecordUndo().researchSpeedBonus = amount.Value;
             }
         }
         using (gui.EnterRow()) {
             gui.BuildText("Research productivity bonus (project-wide setting): ");
-            DisplayAmount amount = new(Project.current.settings.researchProductivity, UnitOfMeasure.Percent);
+            DisplayAmount amount = new((float)Project.current.settings.researchProductivity, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.ModuleParametersTextInput) && amount.Value >= 0) {
                 Project.current.settings.RecordUndo().researchProductivity = amount.Value;
             }

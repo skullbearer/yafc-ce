@@ -154,7 +154,7 @@ public class ProjectPageSettingsPanel : PseudoScreen {
     private class ExportRecipe {
         public string Recipe { get; }
         public string Building { get; }
-        public float BuildingCount { get; }
+        public double BuildingCount { get; }
         public IEnumerable<string> Modules { get; }
         public string? Beacon { get; }
         public int BeaconCount { get; }

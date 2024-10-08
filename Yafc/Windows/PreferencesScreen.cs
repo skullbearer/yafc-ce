@@ -41,7 +41,7 @@ public class PreferencesScreen : PseudoScreen {
 
         using (gui.EnterRowWithHelpIcon("0 for off, 100% for old default")) {
             gui.BuildText("Pollution cost modifier", topOffset: 0.5f);
-            DisplayAmount amount = new(settings.PollutionCostModifier, UnitOfMeasure.Percent);
+            DisplayAmount amount = new((float)settings.PollutionCostModifier, UnitOfMeasure.Percent);
             if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.DefaultTextInput) && amount.Value >= 0) {
                 settings.RecordUndo().PollutionCostModifier = amount.Value;
                 gui.Rebuild();
@@ -135,7 +135,7 @@ public class PreferencesScreen : PseudoScreen {
     }
 
     private static void BuildUnitPerTime(ImGui gui, bool fluid, ProjectPreferences preferences) {
-        DisplayAmount unit = fluid ? preferences.fluidUnit : preferences.itemUnit;
+        DisplayAmount unit = (float)(fluid ? preferences.fluidUnit : preferences.itemUnit);
         if (gui.BuildRadioButton("Simple Amount" + preferences.GetPerTimeUnit().suffix, unit == 0f)) {
             unit = 0f;
         }

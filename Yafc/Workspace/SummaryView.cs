@@ -96,7 +96,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            DisplayAmount amount = new(element.amount, element.goods.flowUnitOfMeasure);
+            DisplayAmount amount = new((float)element.amount, element.goods.flowUnitOfMeasure);
             GoodsWithAmountEvent evt = gui.BuildFactorioObjectWithEditableAmount(element.goods, amount, ButtonDisplayStyle.ProductionTableScaled(iconColor));
 
             if (evt == GoodsWithAmountEvent.TextEditing && amount.Value != 0) {
@@ -125,7 +125,7 @@ public class SummaryView : ProjectPageView<Summary> {
 
             gui.allocator = RectAllocator.Stretch;
             gui.spacing = 0f;
-            _ = gui.BuildFactorioObjectWithAmount(flow.goods, new(-flow.amount, flow.goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(iconColor));
+            _ = gui.BuildFactorioObjectWithAmount(flow.goods, new((float)(-flow.amount), flow.goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableScaled(iconColor));
         }
 
         internal static Task SetProviderAmount(ProductionLink element, ProjectPage page, float newAmount) {
@@ -356,7 +356,7 @@ public class SummaryView : ProjectPageView<Summary> {
             foreach (ProductionLink link in content.links) {
                 if (link.amount != 0f) {
                     GoodDetails value = newGoods.GetValueOrDefault(link.goods.name);
-                    value.totalProvided += YafcRounding(link.amount); ;
+                    value.totalProvided += YafcRounding((float)link.amount); ;
                     newGoods[link.goods.name] = value;
                 }
             }
@@ -364,16 +364,16 @@ public class SummaryView : ProjectPageView<Summary> {
             foreach (ProductionTableFlow flow in content.flow) {
                 if (flow.amount < -Epsilon) {
                     GoodDetails value = newGoods.GetValueOrDefault(flow.goods.name);
-                    value.totalNeeded -= YafcRounding(flow.amount); ;
-                    value.sum -= YafcRounding(flow.amount); ;
+                    value.totalNeeded -= YafcRounding((float)flow.amount); ;
+                    value.sum -= YafcRounding((float)flow.amount); ;
                     newGoods[flow.goods.name] = value;
                 }
                 else if (flow.amount > Epsilon) {
                     if (!content.links.Exists(x => x.goods == flow.goods)) {
                         // Only count extras if not linked
                         GoodDetails value = newGoods.GetValueOrDefault(flow.goods.name);
-                        value.extraProduced += YafcRounding(flow.amount);
-                        value.sum -= YafcRounding(flow.amount);
+                        value.extraProduced += YafcRounding((float)flow.amount);
+                        value.sum -= YafcRounding((float)flow.amount);
                         newGoods[flow.goods.name] = value;
                     }
                 }
@@ -401,8 +401,8 @@ public class SummaryView : ProjectPageView<Summary> {
 
     // Convert/truncate value as shown in UI to prevent slight mismatches
     private static float YafcRounding(float value) {
-        _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.PerSecond), out float result, UnitOfMeasure.PerSecond);
-        return result;
+        _ = DataUtils.TryParseAmount(DataUtils.FormatAmount(value, UnitOfMeasure.PerSecond), out double result, UnitOfMeasure.PerSecond);
+        return (float)result;
     }
 
     public override void SetSearchQuery(SearchQuery query) {

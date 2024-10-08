@@ -9,7 +9,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
     private static readonly NeverEnoughItemsPanel Instance = new NeverEnoughItemsPanel();
     private Goods current = null!; // null-forgiving: Set by Show.
     private Goods? changing;
-    private float currentFlow;
+    private double currentFlow;
     private EntryStatus showRecipesRange = EntryStatus.Normal;
     private readonly List<Goods> recent = [];
     private bool atCurrentMilestones;
@@ -27,14 +27,14 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
 
     private readonly struct RecipeEntry {
         public readonly Recipe recipe;
-        public readonly float recipeFlow;
-        public readonly float flow;
-        public readonly float specificEfficiency;
+        public readonly double recipeFlow;
+        public readonly double flow;
+        public readonly double specificEfficiency;
         public readonly EntryStatus entryStatus;
 
         public RecipeEntry(Recipe recipe, bool isProduction, Goods currentItem, bool atCurrentMilestones) {
             this.recipe = recipe;
-            float amount = isProduction ? recipe.GetProductionPerRecipe(currentItem) : recipe.GetConsumptionPerRecipe(currentItem);
+            double amount = isProduction ? recipe.GetProductionPerRecipe(currentItem) : recipe.GetConsumptionPerRecipe(currentItem);
             recipeFlow = recipe.ApproximateFlow(atCurrentMilestones);
             flow = recipeFlow * amount;
             specificEfficiency = isProduction ? recipe.Cost() / amount : 0f;
@@ -45,7 +45,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
                 entryStatus = EntryStatus.NotAccessibleWithCurrentMilestones;
             }
             else {
-                float waste = recipe.RecipeWaste(atCurrentMilestones);
+                double waste = recipe.RecipeWaste(atCurrentMilestones);
                 if (recipe.specialType != FactorioObjectSpecialType.Normal && recipeFlow <= 0.01f) {
                     entryStatus = EntryStatus.Special;
                 }
@@ -119,7 +119,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
             return;
         }
         foreach (var ingredient in recipe.ingredients) {
-            if (gui.BuildFactorioObjectWithAmount(ingredient.goods, ingredient.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
+            if (gui.BuildFactorioObjectWithAmount(ingredient.goods, (float)ingredient.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                 if (ingredient.variants != null) {
                     gui.ShowDropDown(imGui => imGui.BuildInlineObjectListAndButton<Goods>(ingredient.variants, DataUtils.DefaultOrdering, SetItem, "Accepted fluid variants"));
                 }
@@ -137,7 +137,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         }
         for (int i = recipe.products.Length - 1; i >= 0; i--) {
             var product = recipe.products[i];
-            if (gui.BuildFactorioObjectWithAmount(product.goods, product.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
+            if (gui.BuildFactorioObjectWithAmount(product.goods, (float)product.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                 changing = product.goods;
             }
         }
@@ -147,7 +147,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         using var grid = gui.EnterInlineGrid(3f, 0f, maxElemCount);
         foreach (var item in list) {
             grid.Next();
-            if (gui.BuildFactorioObjectWithAmount(item.target, item.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
+            if (gui.BuildFactorioObjectWithAmount(item.target, (float)item.amount, ButtonDisplayStyle.NeieSmall) == Click.Left) {
                 changing = item.target as Goods;
             }
         }
@@ -165,7 +165,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         var bgColor = SchemeColor.Background;
         bool isBuilding = gui.isBuilding;
         var recipe = entry.recipe;
-        float waste = recipe.RecipeWaste(atCurrentMilestones);
+        double waste = recipe.RecipeWaste(atCurrentMilestones);
         if (isBuilding) {
             if (entry.entryStatus == EntryStatus.NotAccessible) {
                 bgColor = SchemeColor.None;
@@ -184,7 +184,7 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
                     gui.BuildIcon(Icon.Time);
                     gui.BuildText(DataUtils.FormatAmount(entry.recipe.time, UnitOfMeasure.Second), TextBlockDisplayStyle.Centered);
                 }
-                float bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
+                double bh = CostAnalysis.GetBuildingHours(recipe, entry.recipeFlow);
                 if (bh > 20) {
                     gui.BuildText(DataUtils.FormatAmount(bh, UnitOfMeasure.None, suffix: "bh"), TextBlockDisplayStyle.Centered);
 
@@ -237,15 +237,15 @@ public class NeverEnoughItemsPanel : PseudoScreen, IComparer<NeverEnoughItemsPan
         if (isBuilding) {
             var rect = gui.lastRect;
             if (entry.flow > 0f) {
-                float percentFlow = MathUtils.Clamp(entry.flow / currentFlow, 0f, 1f);
-                rect.Width *= percentFlow;
+                double percentFlow = MathUtils.Clamp(entry.flow / currentFlow, 0d, 1d);
+                rect.Width *= (float)percentFlow;
                 gui.DrawRectangle(rect, SchemeColor.Primary);
             }
             else if (waste <= 0f) {
                 bgColor = SchemeColor.Secondary;
             }
             else {
-                rect.Width *= (1f - waste);
+                rect.Width *= (1f - (float)waste);
                 gui.DrawRectangle(rect, SchemeColor.Secondary);
             }
             gui.DrawRectangle(gui.lastRect, bgColor);

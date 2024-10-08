@@ -99,7 +99,7 @@ public class DataGrid<TData> where TData : class {
                 float center = rect.X + (rect.Width * 0.5f);
                 if (gui.IsMouseDown(rect, SDL.SDL_BUTTON_LEFT)) {
                     float unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
-                    float clampedWidth = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
+                    float clampedWidth = MathUtils.ClampF(unclampedWidth, column.minWidth, column.maxWidth);
                     center = center - column.width + clampedWidth;
                 }
                 Rect viewRect = new Rect(center - 0.1f, rect.Y, 0.2f, rect.Height);
@@ -118,7 +118,7 @@ public class DataGrid<TData> where TData : class {
             case ImGuiAction.MouseUp:
                 if (gui.ConsumeMouseUp(rect, false)) {
                     float unclampedWidth = gui.mousePosition.X - rect.Center.X + column.width;
-                    column.width = MathUtils.Clamp(unclampedWidth, column.minWidth, column.maxWidth);
+                    column.width = MathUtils.ClampF(unclampedWidth, column.minWidth, column.maxWidth);
                     contentGui?.Rebuild();
                 }
                 break;

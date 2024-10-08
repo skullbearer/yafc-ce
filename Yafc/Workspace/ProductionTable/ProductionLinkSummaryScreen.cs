@@ -9,7 +9,7 @@ public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow ro
     private readonly ProductionLink link;
     private readonly List<(RecipeRow row, float flow)> input = [];
     private readonly List<(RecipeRow row, float flow)> output = [];
-    private float totalInput, totalOutput;
+    private double totalInput, totalOutput;
     private readonly ScrollArea scrollArea;
 
     private ProductionLinkSummaryScreen(ProductionLink link) {
@@ -20,17 +20,17 @@ public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow ro
 
     private void BuildScrollArea(ImGui gui) {
         gui.BuildText("Production: " + DataUtils.FormatAmount(totalInput, link.goods.flowUnitOfMeasure), Font.subheader);
-        BuildFlow(gui, input, totalInput);
+        BuildFlow(gui, input, (float)totalInput);
         gui.spacing = 0.5f;
         gui.BuildText("Consumption: " + DataUtils.FormatAmount(totalOutput, link.goods.flowUnitOfMeasure), Font.subheader);
-        BuildFlow(gui, output, totalOutput);
+        BuildFlow(gui, output, (float)totalOutput);
         if (link.amount != 0) {
             gui.spacing = 0.5f;
-            gui.BuildText((link.amount > 0 ? "Requested production: " : "Requested consumption: ") + DataUtils.FormatAmount(MathF.Abs(link.amount),
+            gui.BuildText((link.amount > 0 ? "Requested production: " : "Requested consumption: ") + DataUtils.FormatAmount(Math.Abs(link.amount),
                 link.goods.flowUnitOfMeasure), new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.GreenAlt));
         }
         if (link.flags.HasFlags(ProductionLink.Flags.LinkNotMatched) && totalInput != totalOutput + link.amount) {
-            float amount = totalInput - totalOutput - link.amount;
+            float amount = (float)(totalInput - totalOutput - link.amount);
             gui.spacing = 0.5f;
             gui.BuildText((amount > 0 ? "Overproduction: " : "Overconsumption: ") + DataUtils.FormatAmount(MathF.Abs(amount), link.goods.flowUnitOfMeasure),
                 new TextBlockDisplayStyle(Font.subheader, Color: SchemeColor.Error));
@@ -64,16 +64,16 @@ public class ProductionLinkSummaryScreen : PseudoScreen, IComparer<(RecipeRow ro
         totalInput = 0;
         totalOutput = 0;
         foreach (var recipe in link.capturedRecipes) {
-            float production = recipe.GetProductionForRow(link.goods);
-            float consumption = recipe.GetConsumptionForRow(link.goods);
-            float fuelUsage = recipe.fuel == link.goods ? recipe.FuelInformation.Amount : 0;
-            float localFlow = production - consumption - fuelUsage;
+            double production = recipe.GetProductionForRow(link.goods);
+            double consumption = recipe.GetConsumptionForRow(link.goods);
+            double fuelUsage = recipe.fuel == link.goods ? recipe.FuelInformation.Amount : 0;
+            double localFlow = production - consumption - fuelUsage;
             if (localFlow > 0) {
-                input.Add((recipe, localFlow));
+                input.Add((recipe, (float)localFlow));
                 totalInput += localFlow;
             }
             else if (localFlow < 0) {
-                output.Add((recipe, -localFlow));
+                output.Add((recipe, (float)(-localFlow)));
                 totalOutput -= localFlow;
             }
         }

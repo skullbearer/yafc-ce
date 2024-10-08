@@ -85,7 +85,7 @@ public class ShoppingListScreen : PseudoScreen {
             else if (obj is Entity or Item) {
                 buildings += count;
             }
-            cost += obj.Cost() * count;
+            cost += (float)obj.Cost() * count;
         }
         shoppingCost = cost;
         totalBuildings = buildings;
@@ -215,11 +215,11 @@ public class ShoppingListScreen : PseudoScreen {
                 }
 
                 foreach (var ingredient in rec.ingredients) {
-                    AddDecomposition(ingredient.goods, ingredient.amount * amount);
+                    AddDecomposition(ingredient.goods, (float)ingredient.amount * amount);
                 }
             }
             else if (elem is Goods g && (g.usages.Length <= 5 || (g is Item item && (item.factorioType != "item" || item.placeResult != null))) && (rec = FindSingleProduction(g.production)!) != null) {
-                AddDecomposition(g.production[0], amount / rec.GetProductionPerRecipe(g));
+                AddDecomposition(g.production[0], amount / (float)rec.GetProductionPerRecipe(g));
             }
             else {
                 continue;

@@ -19,7 +19,7 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
         using var grid = gui.EnterInlineGrid(3f, 1f);
         foreach (var goal in contents.goals) {
             grid.Next();
-            _ = gui.BuildFactorioObjectWithAmount(goal.item, new(goal.amount, goal.item.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableUnscaled);
+            _ = gui.BuildFactorioObjectWithAmount(goal.item, new((float)goal.amount, goal.item.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableUnscaled);
         }
     }
 
@@ -38,7 +38,7 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
                 for (int i = 0; i < goal.Count; i++) {
                     var elem = goal[i];
                     grid.Next();
-                    DisplayAmount amount = new(elem.amount, elem.item.flowUnitOfMeasure);
+                    DisplayAmount amount = new((float)elem.amount, elem.item.flowUnitOfMeasure);
                     if (gui.BuildFactorioObjectWithEditableAmount(elem.item, amount, ButtonDisplayStyle.ProductionTableUnscaled) == GoodsWithAmountEvent.TextEditing) {
                         if (amount.Value != 0f) {
                             elem.amount = amount.Value;
@@ -96,7 +96,7 @@ public class AutoPlannerView : ProjectPageView<AutoPlanner> {
 
                 grid.Next();
 
-                if (gui.BuildFactorioObjectWithAmount(recipe.recipe, new(recipe.recipesPerSecond, UnitOfMeasure.PerSecond), ButtonDisplayStyle.ProductionTableScaled(color)) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(recipe.recipe, new((float)recipe.recipesPerSecond, UnitOfMeasure.PerSecond), ButtonDisplayStyle.ProductionTableScaled(color)) == Click.Left) {
                     selectedRecipe = recipe;
                 }
             }

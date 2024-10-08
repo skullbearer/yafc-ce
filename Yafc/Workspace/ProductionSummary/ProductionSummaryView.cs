@@ -114,7 +114,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             using (gui.EnterFixedPositioning(3f, 2f, default)) {
                 gui.allocator = RectAllocator.LeftRow;
                 gui.BuildText("x");
-                DisplayAmount amount = entry.multiplier;
+                DisplayAmount amount = (float)entry.multiplier;
                 if (gui.BuildFloatInput(amount, TextBoxDisplayStyle.FactorioObjectInput with { ColorGroup = SchemeColorGroup.Grey, Alignment = RectAlignment.MiddleLeft })
                     && amount.Value >= 0) {
 
@@ -154,7 +154,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             var moveHandle = gui.statePosition;
             moveHandle.Height = 5f;
 
-            if (gui.BuildFactorioObjectWithAmount(goods, new(view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure),
+            if (gui.BuildFactorioObjectWithAmount(goods, new((float)view.model.GetTotalFlow(goods), goods.flowUnitOfMeasure),
                 ButtonDisplayStyle.ProductionTableScaled(view.filteredGoods == goods ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
 
                 view.ApplyFilter(goods);
@@ -169,9 +169,9 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
         }
 
         public override void BuildElement(ImGui gui, ProductionSummaryEntry data) {
-            float amount = data.GetAmount(goods);
+            float amount = (float)data.GetAmount(goods);
             if (amount != 0) {
-                if (gui.BuildFactorioObjectWithAmount(goods, new(data.GetAmount(goods), goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableUnscaled) == Click.Left) {
+                if (gui.BuildFactorioObjectWithAmount(goods, new((float)data.GetAmount(goods), goods.flowUnitOfMeasure), ButtonDisplayStyle.ProductionTableUnscaled) == Click.Left) {
                     view.ApplyFilter(goods);
                 }
             }
@@ -193,7 +193,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
                         view.AddOrRemoveColumn(goods);
                     }
                     else if (evt == ButtonEvent.MouseOver) {
-                        ImmediateWidgets.ShowPrecisionValueTooltip(gui, new(amount, goods.flowUnitOfMeasure), goods);
+                        ImmediateWidgets.ShowPrecisionValueTooltip(gui, new((float)amount, goods.flowUnitOfMeasure), goods);
                     }
                 }
             }
@@ -290,7 +290,7 @@ public class ProductionSummaryView : ProjectPageView<ProductionSummary> {
             using var inlineGrid = gui.EnterInlineGrid(3f, 1f);
             foreach (var (goods, amount) in model.sortedFlow) {
                 inlineGrid.Next();
-                if (gui.BuildFactorioObjectWithAmount(goods, new(amount, goods.flowUnitOfMeasure),
+                if (gui.BuildFactorioObjectWithAmount(goods, new((float)amount, goods.flowUnitOfMeasure),
                     ButtonDisplayStyle.ProductionTableScaled(model.columnsExist.Contains(goods) ? SchemeColor.Primary : SchemeColor.None)) == Click.Left) {
 
                     AddOrRemoveColumn(goods);

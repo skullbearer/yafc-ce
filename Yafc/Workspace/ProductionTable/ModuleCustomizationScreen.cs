@@ -123,7 +123,7 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
             }
 
             if (recipe != null) {
-                float craftingSpeed = (recipe.entity?.craftingSpeed ?? 1f) * effects.speedMod;
+                float craftingSpeed = (float)((recipe.entity?.craftingSpeed ?? 1f) * effects.speedMod);
                 gui.BuildText("Current effects:", Font.subheader);
                 gui.BuildText("Productivity bonus: " + DataUtils.FormatAmount(effects.productivity, UnitOfMeasure.Percent));
                 gui.BuildText("Speed bonus: " + DataUtils.FormatAmount(effects.speedMod - 1, UnitOfMeasure.Percent) + " (Crafting speed: " +
@@ -132,14 +132,14 @@ public class ModuleCustomizationScreen : PseudoScreenWithResult<ModuleTemplateBu
                 string energyUsageLine = "Energy usage: " + DataUtils.FormatAmount(effects.energyUsageMod, UnitOfMeasure.Percent);
 
                 if (recipe.entity != null) {
-                    float power = effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity;
+                    float power = (float)(effects.energyUsageMod * recipe.entity.power / recipe.entity.energy.effectivity);
                     if (!recipe.recipe.flags.HasFlagAny(RecipeFlags.UsesFluidTemperature | RecipeFlags.ScaleProductionWithPower) && recipe.entity != null) {
                         energyUsageLine += " (" + DataUtils.FormatAmount(power, UnitOfMeasure.Megawatt) + " per building)";
                     }
 
                     gui.BuildText(energyUsageLine);
 
-                    float pps = craftingSpeed * (1f + MathF.Max(0f, effects.productivity)) / recipe.recipe.time;
+                    float pps = (float)(craftingSpeed * (1f + Math.Max(0f, effects.productivity)) / recipe.recipe.time);
                     gui.BuildText("Overall crafting speed (including productivity): " + DataUtils.FormatAmount(pps, UnitOfMeasure.PerSecond));
                     gui.BuildText("Energy cost per recipe output: " + DataUtils.FormatAmount(power / pps, UnitOfMeasure.Megajoule));
                 }

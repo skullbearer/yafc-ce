@@ -405,7 +405,7 @@ public class ObjectTooltip : Tooltip {
             }
 
             if (recipe is Recipe rec) {
-                float waste = rec.RecipeWaste();
+                float waste = (float)rec.RecipeWaste();
                 if (waste > 0.01f) {
                     int wasteAmount = MathUtils.Round(waste * 100f);
                     string wasteText = ". (Wasting " + wasteAmount + "% of YAFC cost)";
@@ -526,7 +526,7 @@ public class ObjectTooltip : Tooltip {
                 using var grid = gui.EnterInlineGrid(3f);
                 foreach (var pack in packs) {
                     grid.Next();
-                    _ = gui.BuildFactorioObjectWithAmount(pack.goods, pack.amount, ButtonDisplayStyle.ProductionTableUnscaled);
+                    _ = gui.BuildFactorioObjectWithAmount(pack.goods, (float)pack.amount, ButtonDisplayStyle.ProductionTableUnscaled);
                 }
             }
         }

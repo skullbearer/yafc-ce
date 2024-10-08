@@ -143,7 +143,7 @@ public class MainScreenTabBar {
                 break;
             case ImGuiAction.MouseScroll:
                 if (gui.ConsumeEvent(rect)) {
-                    float clampedX = MathUtils.Clamp(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
+                    float clampedX = MathUtils.ClampF(-tabs.offset.X + (6f * gui.actionParameter), 0, maxScroll);
                     tabs.offset = new Vector2(-clampedX, 0f);
                 }
                 break;
